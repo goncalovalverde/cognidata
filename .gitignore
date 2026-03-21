@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Base de datos
+*.db
+*.sqlite
+*.sqlite3
+neuro_data.db
+
+# Backups
+backups/
+*.db.bak
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Entorno
+.env
+
+# OS
+.DS_Store

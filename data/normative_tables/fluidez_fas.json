@@ -1,0 +1,55 @@
+{
+  "test_name": "Fluidez-FAS",
+  "source": "NEURONORMA",
+  "description": "Test de Fluidez Verbal Fonológica. Total F+A+S.",
+  "age_ranges": [
+    {
+      "age_min": 50,
+      "age_max": 100,
+      "education_ranges": [
+        {
+          "education_min": 0,
+          "education_max": 7,
+          "conversion_table": {
+            "50": {"pe": 19, "percentil": 99},
+            "40": {"pe": 16, "percentil": 95},
+            "34": {"pe": 13, "percentil": 84},
+            "28": {"pe": 11, "percentil": 63},
+            "22": {"pe": 9, "percentil": 37},
+            "16": {"pe": 7, "percentil": 16},
+            "10": {"pe": 5, "percentil": 5},
+            "5": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 8,
+          "education_max": 12,
+          "conversion_table": {
+            "55": {"pe": 19, "percentil": 99},
+            "45": {"pe": 16, "percentil": 95},
+            "39": {"pe": 13, "percentil": 84},
+            "33": {"pe": 11, "percentil": 63},
+            "27": {"pe": 9, "percentil": 37},
+            "21": {"pe": 7, "percentil": 16},
+            "15": {"pe": 5, "percentil": 5},
+            "10": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 13,
+          "education_max": 25,
+          "conversion_table": {
+            "60": {"pe": 19, "percentil": 99},
+            "50": {"pe": 16, "percentil": 95},
+            "44": {"pe": 13, "percentil": 84},
+            "38": {"pe": 11, "percentil": 63},
+            "32": {"pe": 9, "percentil": 37},
+            "26": {"pe": 7, "percentil": 16},
+            "20": {"pe": 5, "percentil": 5},
+            "15": {"pe": 3, "percentil": 1}
+          }
+        }
+      ]
+    }
+  ]
+}

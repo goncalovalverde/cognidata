@@ -1,0 +1,103 @@
+{
+  "test_name": "TMT-A",
+  "source": "NEURONORMA",
+  "description": "Trail Making Test - Parte A. Normas para población española.",
+  "age_ranges": [
+    {
+      "age_min": 50,
+      "age_max": 64,
+      "education_ranges": [
+        {
+          "education_min": 0,
+          "education_max": 7,
+          "conversion_table": {
+            "20": {"pe": 19, "percentil": 99},
+            "30": {"pe": 16, "percentil": 95},
+            "40": {"pe": 13, "percentil": 84},
+            "50": {"pe": 11, "percentil": 63},
+            "60": {"pe": 9, "percentil": 37},
+            "70": {"pe": 7, "percentil": 16},
+            "80": {"pe": 5, "percentil": 5},
+            "100": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 8,
+          "education_max": 12,
+          "conversion_table": {
+            "18": {"pe": 19, "percentil": 99},
+            "27": {"pe": 16, "percentil": 95},
+            "37": {"pe": 13, "percentil": 84},
+            "47": {"pe": 11, "percentil": 63},
+            "57": {"pe": 9, "percentil": 37},
+            "67": {"pe": 7, "percentil": 16},
+            "77": {"pe": 5, "percentil": 5},
+            "97": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 13,
+          "education_max": 25,
+          "conversion_table": {
+            "16": {"pe": 19, "percentil": 99},
+            "24": {"pe": 16, "percentil": 95},
+            "32": {"pe": 13, "percentil": 84},
+            "40": {"pe": 11, "percentil": 63},
+            "48": {"pe": 9, "percentil": 37},
+            "56": {"pe": 7, "percentil": 16},
+            "64": {"pe": 5, "percentil": 5},
+            "80": {"pe": 3, "percentil": 1}
+          }
+        }
+      ]
+    },
+    {
+      "age_min": 65,
+      "age_max": 100,
+      "education_ranges": [
+        {
+          "education_min": 0,
+          "education_max": 7,
+          "conversion_table": {
+            "25": {"pe": 19, "percentil": 99},
+            "38": {"pe": 16, "percentil": 95},
+            "54": {"pe": 13, "percentil": 84},
+            "70": {"pe": 11, "percentil": 63},
+            "86": {"pe": 9, "percentil": 37},
+            "102": {"pe": 7, "percentil": 16},
+            "118": {"pe": 5, "percentil": 5},
+            "150": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 8,
+          "education_max": 12,
+          "conversion_table": {
+            "22": {"pe": 19, "percentil": 99},
+            "34": {"pe": 16, "percentil": 95},
+            "48": {"pe": 13, "percentil": 84},
+            "62": {"pe": 11, "percentil": 63},
+            "76": {"pe": 9, "percentil": 37},
+            "90": {"pe": 7, "percentil": 16},
+            "104": {"pe": 5, "percentil": 5},
+            "132": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 13,
+          "education_max": 25,
+          "conversion_table": {
+            "20": {"pe": 19, "percentil": 99},
+            "30": {"pe": 16, "percentil": 95},
+            "42": {"pe": 13, "percentil": 84},
+            "54": {"pe": 11, "percentil": 63},
+            "66": {"pe": 9, "percentil": 37},
+            "78": {"pe": 7, "percentil": 16},
+            "90": {"pe": 5, "percentil": 5},
+            "114": {"pe": 3, "percentil": 1}
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "test_name": "TAVEC",
+  "source": "NEURONORMA",
+  "description": "Test de Aprendizaje Verbal España-Complutense. Total Lista A (ensayos 1-5).",
+  "age_ranges": [
+    {
+      "age_min": 50,
+      "age_max": 64,
+      "education_ranges": [
+        {
+          "education_min": 0,
+          "education_max": 7,
+          "conversion_table": {
+            "35": {"pe": 19, "percentil": 99},
+            "45": {"pe": 16, "percentil": 95},
+            "51": {"pe": 13, "percentil": 84},
+            "57": {"pe": 11, "percentil": 63},
+            "63": {"pe": 9, "percentil": 37},
+            "69": {"pe": 7, "percentil": 16},
+            "75": {"pe": 5, "percentil": 5}
+          }
+        },
+        {
+          "education_min": 8,
+          "education_max": 12,
+          "conversion_table": {
+            "40": {"pe": 19, "percentil": 99},
+            "50": {"pe": 16, "percentil": 95},
+            "56": {"pe": 13, "percentil": 84},
+            "62": {"pe": 11, "percentil": 63},
+            "68": {"pe": 9, "percentil": 37},
+            "74": {"pe": 7, "percentil": 16},
+            "80": {"pe": 5, "percentil": 5}
+          }
+        },
+        {
+          "education_min": 13,
+          "education_max": 25,
+          "conversion_table": {
+            "45": {"pe": 19, "percentil": 99},
+            "54": {"pe": 16, "percentil": 95},
+            "60": {"pe": 13, "percentil": 84},
+            "66": {"pe": 11, "percentil": 63},
+            "72": {"pe": 9, "percentil": 37},
+            "78": {"pe": 7, "percentil": 16}
+          }
+        }
+      ]
+    },
+    {
+      "age_min": 65,
+      "age_max": 100,
+      "education_ranges": [
+        {
+          "education_min": 0,
+          "education_max": 7,
+          "conversion_table": {
+            "30": {"pe": 19, "percentil": 99},
+            "40": {"pe": 16, "percentil": 95},
+            "48": {"pe": 13, "percentil": 84},
+            "56": {"pe": 11, "percentil": 63},
+            "64": {"pe": 9, "percentil": 37},
+            "72": {"pe": 7, "percentil": 16},
+            "80": {"pe": 5, "percentil": 5}
+          }
+        },
+        {
+          "education_min": 8,
+          "education_max": 12,
+          "conversion_table": {
+            "35": {"pe": 19, "percentil": 99},
+            "45": {"pe": 16, "percentil": 95},
+            "53": {"pe": 13, "percentil": 84},
+            "61": {"pe": 11, "percentil": 63},
+            "69": {"pe": 9, "percentil": 37},
+            "77": {"pe": 7, "percentil": 16}
+          }
+        },
+        {
+          "education_min": 13,
+          "education_max": 25,
+          "conversion_table": {
+            "40": {"pe": 19, "percentil": 99},
+            "50": {"pe": 16, "percentil": 95},
+            "58": {"pe": 13, "percentil": 84},
+            "66": {"pe": 11, "percentil": 63},
+            "74": {"pe": 9, "percentil": 37}
+          }
+        }
+      ]
+    }
+  ]
+}
