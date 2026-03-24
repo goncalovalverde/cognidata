@@ -1,6 +1,7 @@
 """
 Configuración de la base de datos SQLite
 """
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -9,9 +10,7 @@ import os
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./cognidata.db")
 
 engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    echo=False
+    DATABASE_URL, connect_args={"check_same_thread": False}, echo=False
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -29,5 +28,6 @@ def get_db():
 
 def init_db():
     """Inicializar todas las tablas"""
-    from models import patient, test_session
+    from models import patient, test_session, audit_log
+
     Base.metadata.create_all(bind=engine)
