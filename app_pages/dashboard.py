@@ -170,7 +170,7 @@ def _render_radar_chart():
             xanchor="center",
         ),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     st.markdown("---")
 
 
@@ -239,7 +239,7 @@ def _render_percentile_chart():
         showlegend=False,
         title="Distribución de Percentiles",
     )
-    st.plotly_chart(fig_bar, use_container_width=True)
+    st.plotly_chart(fig_bar, width='stretch')
     st.markdown("---")
 
 
@@ -266,7 +266,7 @@ def _render_summary_table(sessions: list):
         }
     )
 
-    st.dataframe(df_results, use_container_width=True, hide_index=True)
+    st.dataframe(df_results, width='stretch', hide_index=True)
 
 
 def _render_interpretation():

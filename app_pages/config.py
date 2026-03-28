@@ -83,6 +83,6 @@ def _render_audit_logs():
                 )
 
             df_logs = pd.DataFrame(log_data)
-            st.dataframe(df_logs, use_container_width=True, hide_index=True)
+            st.dataframe(df_logs, width='stretch', hide_index=True)
         else:
             st.info("No hay registros de auditoría")

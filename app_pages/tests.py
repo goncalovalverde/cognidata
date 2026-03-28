@@ -457,7 +457,7 @@ def _render_toulouse_pieron_form(patient_id: str):
     if uploaded_file is not None:
         # Display the uploaded image
         image = Image.open(uploaded_file)
-        st.image(image, caption="Test Toulouse-Pieron", use_container_width=True)
+        st.image(image, caption="Test Toulouse-Pieron", width='stretch')
         
         # Save temp image for OCR
         temp_path = os.path.join('data', 'test_images', 'temp_ocr.png')
@@ -532,7 +532,7 @@ def _render_toulouse_pieron_form(patient_id: str):
             with col_img1:
                 with st.expander("🔍 Imagen Convertida a Blanco y Negro", expanded=True):
                     if ocr.get('bw_image_path') and Path(ocr['bw_image_path']).exists():
-                        st.image(ocr['bw_image_path'], use_container_width=True,
+                        st.image(ocr['bw_image_path'], width='stretch',
                                 caption="Conversión B/N automática - Muestra cómo ve el OCR los marcados")
                     else:
                         st.info("No disponible")
@@ -540,7 +540,7 @@ def _render_toulouse_pieron_form(patient_id: str):
             with col_img2:
                 with st.expander("📍 Análisis de Cuadrícula", expanded=True):
                     if ocr.get('processed_image_path') and Path(ocr['processed_image_path']).exists():
-                        st.image(ocr['processed_image_path'], use_container_width=True,
+                        st.image(ocr['processed_image_path'], width='stretch',
                                 caption="Celdas detectadas como marcadas (verde) y no marcadas (rojo)")
                     else:
                         st.info("No disponible")
@@ -554,7 +554,7 @@ def _render_toulouse_pieron_form(patient_id: str):
             if ocr.get('processed_image_path') and os.path.exists(ocr['processed_image_path']):
                 with st.expander("👁️ Ver Imagen Analizada"):
                     analyzed_image = Image.open(ocr['processed_image_path'])
-                    st.image(analyzed_image, caption="Marcaciones detectadas (verde)", use_container_width=True)
+                    st.image(analyzed_image, caption="Marcaciones detectadas (verde)", width='stretch')
         
         elif st.session_state.ocr_results and not st.session_state.ocr_results.get('success'):
             st.warning(f"⚠️ OCR Error: {st.session_state.ocr_results.get('error')}")
@@ -844,4 +844,4 @@ def _render_torre_de_londres_form(patient_id: str):
                         }
                         for r in result['item_results']
                     ])
-                    st.dataframe(item_df, use_container_width=True, hide_index=True)
+                    st.dataframe(item_df, width='stretch', hide_index=True)
