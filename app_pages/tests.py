@@ -462,10 +462,10 @@ def _render_toulouse_pieron_form(patient_id: str):
         
         col_ocr1, col_ocr2 = st.columns([2, 1])
         with col_ocr1:
-            grid_rows = st.number_input("Filas del test", min_value=10, max_value=50, value=20, 
-                                       help="Número de filas en la cuadrícula del test")
+            grid_rows = st.number_input("Filas del test", min_value=10, max_value=50, value=40, 
+                                       help="Número de filas en la cuadrícula del test (típicamente 40)")
             grid_cols = st.number_input("Columnas del test", min_value=20, max_value=60, value=40,
-                                       help="Número de columnas en la cuadrícula del test")
+                                       help="Número de columnas en la cuadrícula del test (típicamente 40)")
         
         with col_ocr2:
             if st.button("🔍 Analizar Imagen", type="primary"):
