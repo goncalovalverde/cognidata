@@ -719,6 +719,7 @@ def _render_torre_de_londres_form(patient_id: str):
                     f"Movimientos {item_num}",
                     value=st.session_state.tol_items[i]['movements'],
                     placeholder="0",
+                    max_chars=4,
                     key=f"tol_movements_{item_num}",
                     label_visibility="collapsed"
                 )
@@ -728,6 +729,7 @@ def _render_torre_de_londres_form(patient_id: str):
                     f"Tiempo {item_num}",
                     value=st.session_state.tol_items[i]['time_seconds'],
                     placeholder="0",
+                    max_chars=4,
                     key=f"tol_time_{item_num}",
                     label_visibility="collapsed"
                 )
