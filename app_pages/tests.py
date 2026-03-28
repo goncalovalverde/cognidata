@@ -423,52 +423,107 @@ def _render_rey_memoria_form(patient_id: str):
 
 
 def _render_toulouse_pieron_form(patient_id: str):
-    """Render Toulouse-Pieron attention test form"""
+    """Render Toulouse-Pieron attention test form with OCR"""
+    st.subheader("👁️ Test de Atención Toulouse-Pieron")
+    st.caption("Evaluación de atención sostenida y velocidad perceptiva")
+    
+    st.markdown("""
+    **Instrucciones:**
+    1. Sube una imagen del test completado (escaneado o fotografía)
+    2. Opcionalmente, usa OCR para detectar marcaciones automáticamente
+    3. Revisa y ajusta los resultados según sea necesario
+    """)
+    
+    # Image upload (outside form for OCR button)
+    st.markdown("### 📸 Imagen del Test")
+    uploaded_file = st.file_uploader(
+        "Subir imagen del test",
+        type=["png", "jpg", "jpeg"],
+        help="Sube una fotografía o escaneo del test Toulouse-Pieron completado",
+        key="toulouse_upload"
+    )
+    
+    # Initialize session state for OCR results
+    if 'ocr_results' not in st.session_state:
+        st.session_state.ocr_results = None
+    
+    if uploaded_file is not None:
+        # Display the uploaded image
+        image = Image.open(uploaded_file)
+        st.image(image, caption="Test Toulouse-Pieron", use_container_width=True)
+        
+        # Save temp image for OCR
+        temp_path = os.path.join('data', 'test_images', 'temp_ocr.png')
+        image.save(temp_path, "PNG")
+        
+        # OCR Section
+        st.markdown("---")
+        st.markdown("### 🤖 Análisis Automático (OCR)")
+        
+        col_ocr1, col_ocr2 = st.columns([2, 1])
+        with col_ocr1:
+            grid_rows = st.number_input("Filas del test", min_value=10, max_value=50, value=20, 
+                                       help="Número de filas en la cuadrícula del test")
+            grid_cols = st.number_input("Columnas del test", min_value=20, max_value=60, value=40,
+                                       help="Número de columnas en la cuadrícula del test")
+        
+        with col_ocr2:
+            if st.button("🔍 Analizar Imagen", type="primary"):
+                from services.ocr_processor import ocr_processor
+                
+                with st.spinner("Analizando imagen..."):
+                    result = ocr_processor.analyze_image(
+                        temp_path,
+                        expected_rows=grid_rows,
+                        expected_cols=grid_cols
+                    )
+                    st.session_state.ocr_results = result
+        
+        # Show OCR results if available
+        if st.session_state.ocr_results and st.session_state.ocr_results.get('success'):
+            ocr = st.session_state.ocr_results
+            st.success(f"✅ Análisis completado con {ocr['confidence']*100:.0f}% de confianza")
+            
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Celdas Totales", ocr['total_cells_detected'])
+            col2.metric("Celdas Marcadas", ocr['marked_cells'])
+            col3.metric("Confianza", f"{ocr['confidence']*100:.0f}%")
+            
+            if ocr.get('processed_image_path') and os.path.exists(ocr['processed_image_path']):
+                with st.expander("👁️ Ver Imagen Analizada"):
+                    analyzed_image = Image.open(ocr['processed_image_path'])
+                    st.image(analyzed_image, caption="Marcaciones detectadas (verde)", use_container_width=True)
+        
+        elif st.session_state.ocr_results and not st.session_state.ocr_results.get('success'):
+            st.warning(f"⚠️ OCR Error: {st.session_state.ocr_results.get('error')}")
+            st.info("Puedes introducir los valores manualmente a continuación.")
+    
+    # Manual entry form
     with st.form("toulouse_pieron_form"):
-        st.subheader("👁️ Test de Atención Toulouse-Pieron")
-        st.caption("Evaluación de atención sostenida y velocidad perceptiva")
-        
-        st.markdown("""
-        **Instrucciones:**
-        1. Sube una imagen del test completado (escaneado o fotografía)
-        2. Cuenta manualmente los resultados del test
-        3. Introduce los valores a continuación
-        """)
-        
-        # Image upload
-        st.markdown("### 📸 Imagen del Test")
-        uploaded_file = st.file_uploader(
-            "Subir imagen del test",
-            type=["png", "jpg", "jpeg"],
-            help="Sube una fotografía o escaneo del test Toulouse-Pieron completado"
-        )
-        
-        if uploaded_file is not None:
-            # Display the uploaded image
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Test Toulouse-Pieron", use_container_width=True)
-        
         st.markdown("---")
         st.markdown("### 📊 Resultados del Test")
         
-        # Test metrics
+        # Pre-fill with OCR results if available
+        default_total = st.session_state.ocr_results.get('total_cells_detected', 200) if st.session_state.ocr_results else 200
+        default_marked = st.session_state.ocr_results.get('marked_cells', 150) if st.session_state.ocr_results else 150
+        
         col1, col2 = st.columns(2)
         with col1:
             items_procesados = st.number_input(
                 "Ítems Procesados (Total)",
                 min_value=0,
                 max_value=2000,
-                value=200,
+                value=default_total,
                 step=1,
-                help="Número total de ítems procesados durante el test"
+                help="Número total de ítems procesados. Se puede auto-rellenar con OCR."
             )
             aciertos = st.number_input(
                 "Aciertos (Correctos)",
                 min_value=0,
                 max_value=items_procesados,
-                value=150,
+                value=min(default_marked, items_procesados),
                 step=1,
-                help="Número de marcaciones correctas"
+                help="Número de marcaciones correctas. Ajusta el valor OCR si es necesario."
             )
         
         with col2:
@@ -528,7 +583,7 @@ def _render_toulouse_pieron_form(patient_id: str):
             patient = _get_patient_data(patient_id)
             scores = calculator.calculate(
                 test_type="Toulouse-Pieron",
-                raw_score=productividad_neta,  # Net productivity is the key metric
+                raw_score=productividad_neta,
                 age=patient["age"],
                 education_years=patient["education_years"],
             )
@@ -544,6 +599,8 @@ def _render_toulouse_pieron_form(patient_id: str):
                 "image_path": image_path,
                 "image_filename": image_filename,
                 "observaciones": observaciones,
+                "ocr_used": st.session_state.ocr_results is not None,
+                "ocr_confidence": st.session_state.ocr_results.get('confidence', 0) if st.session_state.ocr_results else 0
             }
             
             _save_test_session(patient_id, "Toulouse-Pieron", raw_data, scores)
@@ -551,3 +608,6 @@ def _render_toulouse_pieron_form(patient_id: str):
             st.success("✅ Test Toulouse-Pieron guardado exitosamente!")
             st.info(f"📁 Imagen guardada: {image_filename}")
             _display_scores(scores)
+            
+            # Clear OCR results for next test
+            st.session_state.ocr_results = None

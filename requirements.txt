@@ -17,6 +17,8 @@ reportlab>=4.0.8
 
 # Image processing
 Pillow>=10.0.0
+opencv-python>=4.8.0
+scikit-image>=0.22.0
 
 # Utilidades
 python-dotenv>=1.0.0
