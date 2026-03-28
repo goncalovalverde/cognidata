@@ -23,7 +23,8 @@ class NormativeCalculator:
         test_files = {
             'TMT-A': 'tmt_a.json',
             'TAVEC': 'tavec.json',
-            'Fluidez-FAS': 'fluidez_fas.json'
+            'Fluidez-FAS': 'fluidez_fas.json',
+            'Toulouse-Pieron': 'toulouse_pieron.json'
         }
         
         for test_type, filename in test_files.items():

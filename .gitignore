@@ -19,6 +19,12 @@ neuro_data.db
 backups/
 *.db.bak
 
+# Test images (patient privacy - GDPR)
+data/test_images/
+*.png
+*.jpg
+*.jpeg
+
 # Streamlit
 .streamlit/secrets.toml
 

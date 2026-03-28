@@ -1,0 +1,105 @@
+{
+  "test_name": "Toulouse-Pieron",
+  "source": "NEURONORMA - Simulated",
+  "description": "Test de Atención Toulouse-Pieron. Normas para población española. NOTA: Tabla simulada hasta obtener datos NEURONORMA oficiales.",
+  "scoring_method": "net_productivity",
+  "metric_description": "Productividad neta = Aciertos - Errores. Higher scores indicate better sustained attention.",
+  "age_ranges": [
+    {
+      "age_min": 50,
+      "age_max": 64,
+      "education_ranges": [
+        {
+          "education_min": 0,
+          "education_max": 7,
+          "conversion_table": {
+            "150": {"pe": 19, "percentil": 99},
+            "130": {"pe": 16, "percentil": 95},
+            "110": {"pe": 13, "percentil": 84},
+            "90": {"pe": 11, "percentil": 63},
+            "70": {"pe": 9, "percentil": 37},
+            "50": {"pe": 7, "percentil": 16},
+            "30": {"pe": 5, "percentil": 5},
+            "10": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 8,
+          "education_max": 12,
+          "conversion_table": {
+            "170": {"pe": 19, "percentil": 99},
+            "150": {"pe": 16, "percentil": 95},
+            "130": {"pe": 13, "percentil": 84},
+            "110": {"pe": 11, "percentil": 63},
+            "90": {"pe": 9, "percentil": 37},
+            "70": {"pe": 7, "percentil": 16},
+            "50": {"pe": 5, "percentil": 5},
+            "30": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 13,
+          "education_max": 25,
+          "conversion_table": {
+            "190": {"pe": 19, "percentil": 99},
+            "170": {"pe": 16, "percentil": 95},
+            "150": {"pe": 13, "percentil": 84},
+            "130": {"pe": 11, "percentil": 63},
+            "110": {"pe": 9, "percentil": 37},
+            "90": {"pe": 7, "percentil": 16},
+            "70": {"pe": 5, "percentil": 5},
+            "50": {"pe": 3, "percentil": 1}
+          }
+        }
+      ]
+    },
+    {
+      "age_min": 65,
+      "age_max": 100,
+      "education_ranges": [
+        {
+          "education_min": 0,
+          "education_max": 7,
+          "conversion_table": {
+            "130": {"pe": 19, "percentil": 99},
+            "110": {"pe": 16, "percentil": 95},
+            "90": {"pe": 13, "percentil": 84},
+            "70": {"pe": 11, "percentil": 63},
+            "50": {"pe": 9, "percentil": 37},
+            "30": {"pe": 7, "percentil": 16},
+            "15": {"pe": 5, "percentil": 5},
+            "5": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 8,
+          "education_max": 12,
+          "conversion_table": {
+            "150": {"pe": 19, "percentil": 99},
+            "130": {"pe": 16, "percentil": 95},
+            "110": {"pe": 13, "percentil": 84},
+            "90": {"pe": 11, "percentil": 63},
+            "70": {"pe": 9, "percentil": 37},
+            "50": {"pe": 7, "percentil": 16},
+            "30": {"pe": 5, "percentil": 5},
+            "15": {"pe": 3, "percentil": 1}
+          }
+        },
+        {
+          "education_min": 13,
+          "education_max": 25,
+          "conversion_table": {
+            "170": {"pe": 19, "percentil": 99},
+            "150": {"pe": 16, "percentil": 95},
+            "130": {"pe": 13, "percentil": 84},
+            "110": {"pe": 11, "percentil": 63},
+            "90": {"pe": 9, "percentil": 37},
+            "70": {"pe": 7, "percentil": 16},
+            "50": {"pe": 5, "percentil": 5},
+            "30": {"pe": 3, "percentil": 1}
+          }
+        }
+      ]
+    }
+  ]
+}

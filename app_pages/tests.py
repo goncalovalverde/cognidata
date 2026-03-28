@@ -3,6 +3,9 @@ Tests page - Neuropsychological test administration
 """
 
 import streamlit as st
+import os
+from datetime import datetime
+from PIL import Image
 from database.connection import SessionLocal
 from models import Patient, TestSession
 from services.normatives import calculator
@@ -30,7 +33,7 @@ def render():
 
             test_type = st.selectbox(
                 "Tipo de Test",
-                ["TMT-A", "TMT-B", "TAVEC", "Fluidez-FAS", "Rey-Copia", "Rey-Memoria"],
+                ["TMT-A", "TMT-B", "TAVEC", "Fluidez-FAS", "Rey-Copia", "Rey-Memoria", "Toulouse-Pieron"],
             )
 
             st.markdown("---")
@@ -47,6 +50,8 @@ def render():
                 _render_rey_copia_form(selected_patient_id)
             elif test_type == "Rey-Memoria":
                 _render_rey_memoria_form(selected_patient_id)
+            elif test_type == "Toulouse-Pieron":
+                _render_toulouse_pieron_form(selected_patient_id)
     finally:
         db.close()
 
@@ -414,4 +419,135 @@ def _render_rey_memoria_form(patient_id: str):
             _save_test_session(patient_id, "Rey-Memoria", raw_data, scores)
 
             st.success("✅ Test Figura de Rey (Memoria) guardado exitosamente!")
+            _display_scores(scores)
+
+
+def _render_toulouse_pieron_form(patient_id: str):
+    """Render Toulouse-Pieron attention test form"""
+    with st.form("toulouse_pieron_form"):
+        st.subheader("👁️ Test de Atención Toulouse-Pieron")
+        st.caption("Evaluación de atención sostenida y velocidad perceptiva")
+        
+        st.markdown("""
+        **Instrucciones:**
+        1. Sube una imagen del test completado (escaneado o fotografía)
+        2. Cuenta manualmente los resultados del test
+        3. Introduce los valores a continuación
+        """)
+        
+        # Image upload
+        st.markdown("### 📸 Imagen del Test")
+        uploaded_file = st.file_uploader(
+            "Subir imagen del test",
+            type=["png", "jpg", "jpeg"],
+            help="Sube una fotografía o escaneo del test Toulouse-Pieron completado"
+        )
+        
+        if uploaded_file is not None:
+            # Display the uploaded image
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Test Toulouse-Pieron", use_container_width=True)
+        
+        st.markdown("---")
+        st.markdown("### 📊 Resultados del Test")
+        
+        # Test metrics
+        col1, col2 = st.columns(2)
+        with col1:
+            items_procesados = st.number_input(
+                "Ítems Procesados (Total)",
+                min_value=0,
+                max_value=2000,
+                value=200,
+                step=1,
+                help="Número total de ítems procesados durante el test"
+            )
+            aciertos = st.number_input(
+                "Aciertos (Correctos)",
+                min_value=0,
+                max_value=items_procesados,
+                value=150,
+                step=1,
+                help="Número de marcaciones correctas"
+            )
+        
+        with col2:
+            errores = st.number_input(
+                "Errores (Omisiones + Falsos positivos)",
+                min_value=0,
+                max_value=items_procesados,
+                value=10,
+                step=1,
+                help="Suma de omisiones y marcaciones incorrectas"
+            )
+            tiempo_minutos = st.number_input(
+                "Tiempo (minutos)",
+                min_value=1,
+                max_value=60,
+                value=10,
+                step=1,
+                help="Tiempo empleado en el test (típicamente 10 minutos)"
+            )
+        
+        # Calculated metrics display
+        productividad_neta = aciertos - errores
+        tasa_aciertos = (aciertos / items_procesados * 100) if items_procesados > 0 else 0
+        
+        st.markdown("### 📈 Métricas Calculadas")
+        metric_col1, metric_col2 = st.columns(2)
+        with metric_col1:
+            st.metric("Productividad Neta", f"{productividad_neta}")
+        with metric_col2:
+            st.metric("Tasa de Aciertos", f"{tasa_aciertos:.1f}%")
+        
+        # Observations
+        observaciones = st.text_area(
+            "Observaciones Clínicas (opcional)",
+            placeholder="Estrategias, fatiga observada, patrón de errores, comportamiento...",
+        )
+        
+        submitted = st.form_submit_button("💾 Calcular y Guardar")
+        
+        if submitted:
+            if uploaded_file is None:
+                st.error("⚠️ Por favor, sube una imagen del test antes de guardar.")
+                return
+            
+            # Save the uploaded image
+            image_dir = os.path.join(os.path.dirname(__file__), '..', 'data', 'test_images')
+            os.makedirs(image_dir, exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            image_filename = f"{patient_id[:8]}_Toulouse-Pieron_{timestamp}.png"
+            image_path = os.path.join(image_dir, image_filename)
+            
+            # Save image
+            image.save(image_path, "PNG")
+            
+            # Get patient data and calculate scores
+            patient = _get_patient_data(patient_id)
+            scores = calculator.calculate(
+                test_type="Toulouse-Pieron",
+                raw_score=productividad_neta,  # Net productivity is the key metric
+                age=patient["age"],
+                education_years=patient["education_years"],
+            )
+            
+            # Prepare raw data
+            raw_data = {
+                "items_procesados": items_procesados,
+                "aciertos": aciertos,
+                "errores": errores,
+                "tiempo_minutos": tiempo_minutos,
+                "productividad_neta": productividad_neta,
+                "tasa_aciertos": round(tasa_aciertos, 2),
+                "image_path": image_path,
+                "image_filename": image_filename,
+                "observaciones": observaciones,
+            }
+            
+            _save_test_session(patient_id, "Toulouse-Pieron", raw_data, scores)
+            
+            st.success("✅ Test Toulouse-Pieron guardado exitosamente!")
+            st.info(f"📁 Imagen guardada: {image_filename}")
             _display_scores(scores)

@@ -394,6 +394,9 @@ class NeuroPsychReport:
         elif test_type in ['Rey-Copia', 'Rey-Memoria']:
             return raw_data.get('puntuacion_bruta', 'N/A')
         
+        elif test_type == 'Toulouse-Pieron':
+            return raw_data.get('productividad_neta', 'N/A')
+        
         return 'N/A'
 
 

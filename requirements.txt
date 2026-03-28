@@ -15,6 +15,9 @@ plotly>=5.18.0
 # PDF generation
 reportlab>=4.0.8
 
+# Image processing
+Pillow>=10.0.0
+
 # Utilidades
 python-dotenv>=1.0.0
 
