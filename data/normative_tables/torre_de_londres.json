@@ -13,290 +13,236 @@
         {
           "education_min": 0,
           "education_max": 7,
-          "conversion_table": [
-            {
-              "raw_score": 0,
+          "conversion_table": {
+            "0": {
               "pe": 19,
-              "percentile": 99.1
+              "percentil": 99.1
             },
-            {
-              "raw_score": 2,
+            "2": {
               "pe": 18,
-              "percentile": 97.7
+              "percentil": 97.7
             },
-            {
-              "raw_score": 4,
+            "4": {
               "pe": 17,
-              "percentile": 95.3
+              "percentil": 95.3
             },
-            {
-              "raw_score": 6,
+            "6": {
               "pe": 16,
-              "percentile": 93.2
+              "percentil": 93.2
             },
-            {
-              "raw_score": 8,
+            "8": {
               "pe": 15,
-              "percentile": 84.1
+              "percentil": 84.1
             },
-            {
-              "raw_score": 10,
+            "10": {
               "pe": 14,
-              "percentile": 77.0
+              "percentil": 77.0
             },
-            {
-              "raw_score": 12,
+            "12": {
               "pe": 13,
-              "percentile": 69.2
+              "percentil": 69.2
             },
-            {
-              "raw_score": 15,
+            "15": {
               "pe": 12,
-              "percentile": 59.1
+              "percentil": 59.1
             },
-            {
-              "raw_score": 18,
+            "18": {
               "pe": 11,
-              "percentile": 47.0
+              "percentil": 47.0
             },
-            {
-              "raw_score": 22,
+            "22": {
               "pe": 10,
-              "percentile": 37.0
+              "percentil": 37.0
             },
-            {
-              "raw_score": 26,
+            "26": {
               "pe": 9,
-              "percentile": 27.0
+              "percentil": 27.0
             },
-            {
-              "raw_score": 30,
+            "30": {
               "pe": 8,
-              "percentile": 21.0
+              "percentil": 21.0
             },
-            {
-              "raw_score": 34,
+            "34": {
               "pe": 7,
-              "percentile": 16.0
+              "percentil": 16.0
             },
-            {
-              "raw_score": 40,
+            "40": {
               "pe": 6,
-              "percentile": 9.1
+              "percentil": 9.1
             },
-            {
-              "raw_score": 50,
+            "50": {
               "pe": 5,
-              "percentile": 5.0
+              "percentil": 5.0
             },
-            {
-              "raw_score": 60,
+            "60": {
               "pe": 4,
-              "percentile": 2.3
+              "percentil": 2.3
             },
-            {
-              "raw_score": 70,
+            "70": {
               "pe": 3,
-              "percentile": 1.0
+              "percentil": 1.0
             },
-            {
-              "raw_score": 100,
+            "100": {
               "pe": 1,
-              "percentile": 0.1
+              "percentil": 0.1
             }
-          ]
+          }
         },
         {
           "education_min": 8,
           "education_max": 12,
-          "conversion_table": [
-            {
-              "raw_score": 0,
+          "conversion_table": {
+            "0": {
               "pe": 19,
-              "percentile": 99.4
+              "percentil": 99.4
             },
-            {
-              "raw_score": 2,
+            "2": {
               "pe": 18,
-              "percentile": 98.2
+              "percentil": 98.2
             },
-            {
-              "raw_score": 4,
+            "4": {
               "pe": 17,
-              "percentile": 96.8
+              "percentil": 96.8
             },
-            {
-              "raw_score": 6,
+            "6": {
               "pe": 16,
-              "percentile": 94.1
+              "percentil": 94.1
             },
-            {
-              "raw_score": 8,
+            "8": {
               "pe": 15,
-              "percentile": 87.0
+              "percentil": 87.0
             },
-            {
-              "raw_score": 10,
+            "10": {
               "pe": 14,
-              "percentile": 79.5
+              "percentil": 79.5
             },
-            {
-              "raw_score": 12,
+            "12": {
               "pe": 13,
-              "percentile": 72.0
+              "percentil": 72.0
             },
-            {
-              "raw_score": 15,
+            "15": {
               "pe": 12,
-              "percentile": 63.0
+              "percentil": 63.0
             },
-            {
-              "raw_score": 18,
+            "18": {
               "pe": 11,
-              "percentile": 52.0
+              "percentil": 52.0
             },
-            {
-              "raw_score": 22,
+            "22": {
               "pe": 10,
-              "percentile": 41.0
+              "percentil": 41.0
             },
-            {
-              "raw_score": 26,
+            "26": {
               "pe": 9,
-              "percentile": 31.0
+              "percentil": 31.0
             },
-            {
-              "raw_score": 30,
+            "30": {
               "pe": 8,
-              "percentile": 23.0
+              "percentil": 23.0
             },
-            {
-              "raw_score": 34,
+            "34": {
               "pe": 7,
-              "percentile": 18.0
+              "percentil": 18.0
             },
-            {
-              "raw_score": 40,
+            "40": {
               "pe": 6,
-              "percentile": 11.0
+              "percentil": 11.0
             },
-            {
-              "raw_score": 50,
+            "50": {
               "pe": 5,
-              "percentile": 6.0
+              "percentil": 6.0
             },
-            {
-              "raw_score": 60,
+            "60": {
               "pe": 4,
-              "percentile": 2.8
+              "percentil": 2.8
             },
-            {
-              "raw_score": 70,
+            "70": {
               "pe": 3,
-              "percentile": 1.2
+              "percentil": 1.2
             },
-            {
-              "raw_score": 100,
+            "100": {
               "pe": 1,
-              "percentile": 0.2
+              "percentil": 0.2
             }
-          ]
+          }
         },
         {
           "education_min": 13,
           "education_max": 25,
-          "conversion_table": [
-            {
-              "raw_score": 0,
+          "conversion_table": {
+            "0": {
               "pe": 19,
-              "percentile": 99.6
+              "percentil": 99.6
             },
-            {
-              "raw_score": 2,
+            "2": {
               "pe": 18,
-              "percentile": 98.5
+              "percentil": 98.5
             },
-            {
-              "raw_score": 4,
+            "4": {
               "pe": 17,
-              "percentile": 97.3
+              "percentil": 97.3
             },
-            {
-              "raw_score": 6,
+            "6": {
               "pe": 16,
-              "percentile": 95.5
+              "percentil": 95.5
             },
-            {
-              "raw_score": 8,
+            "8": {
               "pe": 15,
-              "percentile": 89.0
+              "percentil": 89.0
             },
-            {
-              "raw_score": 10,
+            "10": {
               "pe": 14,
-              "percentile": 82.0
+              "percentil": 82.0
             },
-            {
-              "raw_score": 12,
+            "12": {
               "pe": 13,
-              "percentile": 74.5
+              "percentil": 74.5
             },
-            {
-              "raw_score": 15,
+            "15": {
               "pe": 12,
-              "percentile": 65.0
+              "percentil": 65.0
             },
-            {
-              "raw_score": 18,
+            "18": {
               "pe": 11,
-              "percentile": 55.0
+              "percentil": 55.0
             },
-            {
-              "raw_score": 22,
+            "22": {
               "pe": 10,
-              "percentile": 44.0
+              "percentil": 44.0
             },
-            {
-              "raw_score": 26,
+            "26": {
               "pe": 9,
-              "percentile": 34.0
+              "percentil": 34.0
             },
-            {
-              "raw_score": 30,
+            "30": {
               "pe": 8,
-              "percentile": 25.0
+              "percentil": 25.0
             },
-            {
-              "raw_score": 34,
+            "34": {
               "pe": 7,
-              "percentile": 19.0
+              "percentil": 19.0
             },
-            {
-              "raw_score": 40,
+            "40": {
               "pe": 6,
-              "percentile": 12.0
+              "percentil": 12.0
             },
-            {
-              "raw_score": 50,
+            "50": {
               "pe": 5,
-              "percentile": 7.0
+              "percentil": 7.0
             },
-            {
-              "raw_score": 60,
+            "60": {
               "pe": 4,
-              "percentile": 3.0
+              "percentil": 3.0
             },
-            {
-              "raw_score": 70,
+            "70": {
               "pe": 3,
-              "percentile": 1.3
+              "percentil": 1.3
             },
-            {
-              "raw_score": 100,
+            "100": {
               "pe": 1,
-              "percentile": 0.2
+              "percentil": 0.2
             }
-          ]
+          }
         }
       ]
     },
@@ -307,290 +253,236 @@
         {
           "education_min": 0,
           "education_max": 7,
-          "conversion_table": [
-            {
-              "raw_score": 0,
+          "conversion_table": {
+            "0": {
               "pe": 19,
-              "percentile": 98.8
+              "percentil": 98.8
             },
-            {
-              "raw_score": 2,
+            "2": {
               "pe": 18,
-              "percentile": 97.0
+              "percentil": 97.0
             },
-            {
-              "raw_score": 4,
+            "4": {
               "pe": 17,
-              "percentile": 94.2
+              "percentil": 94.2
             },
-            {
-              "raw_score": 6,
+            "6": {
               "pe": 16,
-              "percentile": 91.0
+              "percentil": 91.0
             },
-            {
-              "raw_score": 8,
+            "8": {
               "pe": 15,
-              "percentile": 81.0
+              "percentil": 81.0
             },
-            {
-              "raw_score": 10,
+            "10": {
               "pe": 14,
-              "percentile": 74.0
+              "percentil": 74.0
             },
-            {
-              "raw_score": 12,
+            "12": {
               "pe": 13,
-              "percentile": 66.0
+              "percentil": 66.0
             },
-            {
-              "raw_score": 15,
+            "15": {
               "pe": 12,
-              "percentile": 56.0
+              "percentil": 56.0
             },
-            {
-              "raw_score": 18,
+            "18": {
               "pe": 11,
-              "percentile": 44.0
+              "percentil": 44.0
             },
-            {
-              "raw_score": 22,
+            "22": {
               "pe": 10,
-              "percentile": 34.0
+              "percentil": 34.0
             },
-            {
-              "raw_score": 26,
+            "26": {
               "pe": 9,
-              "percentile": 24.0
+              "percentil": 24.0
             },
-            {
-              "raw_score": 30,
+            "30": {
               "pe": 8,
-              "percentile": 18.0
+              "percentil": 18.0
             },
-            {
-              "raw_score": 34,
+            "34": {
               "pe": 7,
-              "percentile": 13.0
+              "percentil": 13.0
             },
-            {
-              "raw_score": 40,
+            "40": {
               "pe": 6,
-              "percentile": 7.0
+              "percentil": 7.0
             },
-            {
-              "raw_score": 50,
+            "50": {
               "pe": 5,
-              "percentile": 3.5
+              "percentil": 3.5
             },
-            {
-              "raw_score": 60,
+            "60": {
               "pe": 4,
-              "percentile": 1.8
+              "percentil": 1.8
             },
-            {
-              "raw_score": 70,
+            "70": {
               "pe": 3,
-              "percentile": 0.8
+              "percentil": 0.8
             },
-            {
-              "raw_score": 100,
+            "100": {
               "pe": 1,
-              "percentile": 0.1
+              "percentil": 0.1
             }
-          ]
+          }
         },
         {
           "education_min": 8,
           "education_max": 12,
-          "conversion_table": [
-            {
-              "raw_score": 0,
+          "conversion_table": {
+            "0": {
               "pe": 19,
-              "percentile": 99.1
+              "percentil": 99.1
             },
-            {
-              "raw_score": 2,
+            "2": {
               "pe": 18,
-              "percentile": 97.5
+              "percentil": 97.5
             },
-            {
-              "raw_score": 4,
+            "4": {
               "pe": 17,
-              "percentile": 95.5
+              "percentil": 95.5
             },
-            {
-              "raw_score": 6,
+            "6": {
               "pe": 16,
-              "percentile": 92.5
+              "percentil": 92.5
             },
-            {
-              "raw_score": 8,
+            "8": {
               "pe": 15,
-              "percentile": 84.0
+              "percentil": 84.0
             },
-            {
-              "raw_score": 10,
+            "10": {
               "pe": 14,
-              "percentile": 76.5
+              "percentil": 76.5
             },
-            {
-              "raw_score": 12,
+            "12": {
               "pe": 13,
-              "percentile": 68.0
+              "percentil": 68.0
             },
-            {
-              "raw_score": 15,
+            "15": {
               "pe": 12,
-              "percentile": 59.0
+              "percentil": 59.0
             },
-            {
-              "raw_score": 18,
+            "18": {
               "pe": 11,
-              "percentile": 48.0
+              "percentil": 48.0
             },
-            {
-              "raw_score": 22,
+            "22": {
               "pe": 10,
-              "percentile": 37.0
+              "percentil": 37.0
             },
-            {
-              "raw_score": 26,
+            "26": {
               "pe": 9,
-              "percentile": 27.0
+              "percentil": 27.0
             },
-            {
-              "raw_score": 30,
+            "30": {
               "pe": 8,
-              "percentile": 20.0
+              "percentil": 20.0
             },
-            {
-              "raw_score": 34,
+            "34": {
               "pe": 7,
-              "percentile": 15.0
+              "percentil": 15.0
             },
-            {
-              "raw_score": 40,
+            "40": {
               "pe": 6,
-              "percentile": 8.5
+              "percentil": 8.5
             },
-            {
-              "raw_score": 50,
+            "50": {
               "pe": 5,
-              "percentile": 4.5
+              "percentil": 4.5
             },
-            {
-              "raw_score": 60,
+            "60": {
               "pe": 4,
-              "percentile": 2.2
+              "percentil": 2.2
             },
-            {
-              "raw_score": 70,
+            "70": {
               "pe": 3,
-              "percentile": 1.0
+              "percentil": 1.0
             },
-            {
-              "raw_score": 100,
+            "100": {
               "pe": 1,
-              "percentile": 0.1
+              "percentil": 0.1
             }
-          ]
+          }
         },
         {
           "education_min": 13,
           "education_max": 25,
-          "conversion_table": [
-            {
-              "raw_score": 0,
+          "conversion_table": {
+            "0": {
               "pe": 19,
-              "percentile": 99.3
+              "percentil": 99.3
             },
-            {
-              "raw_score": 2,
+            "2": {
               "pe": 18,
-              "percentile": 98.0
+              "percentil": 98.0
             },
-            {
-              "raw_score": 4,
+            "4": {
               "pe": 17,
-              "percentile": 96.3
+              "percentil": 96.3
             },
-            {
-              "raw_score": 6,
+            "6": {
               "pe": 16,
-              "percentile": 93.8
+              "percentil": 93.8
             },
-            {
-              "raw_score": 8,
+            "8": {
               "pe": 15,
-              "percentile": 86.5
+              "percentil": 86.5
             },
-            {
-              "raw_score": 10,
+            "10": {
               "pe": 14,
-              "percentile": 79.0
+              "percentil": 79.0
             },
-            {
-              "raw_score": 12,
+            "12": {
               "pe": 13,
-              "percentile": 71.0
+              "percentil": 71.0
             },
-            {
-              "raw_score": 15,
+            "15": {
               "pe": 12,
-              "percentile": 61.5
+              "percentil": 61.5
             },
-            {
-              "raw_score": 18,
+            "18": {
               "pe": 11,
-              "percentile": 51.0
+              "percentil": 51.0
             },
-            {
-              "raw_score": 22,
+            "22": {
               "pe": 10,
-              "percentile": 40.0
+              "percentil": 40.0
             },
-            {
-              "raw_score": 26,
+            "26": {
               "pe": 9,
-              "percentile": 30.0
+              "percentil": 30.0
             },
-            {
-              "raw_score": 30,
+            "30": {
               "pe": 8,
-              "percentile": 22.0
+              "percentil": 22.0
             },
-            {
-              "raw_score": 34,
+            "34": {
               "pe": 7,
-              "percentile": 16.5
+              "percentil": 16.5
             },
-            {
-              "raw_score": 40,
+            "40": {
               "pe": 6,
-              "percentile": 10.0
+              "percentil": 10.0
             },
-            {
-              "raw_score": 50,
+            "50": {
               "pe": 5,
-              "percentile": 5.5
+              "percentil": 5.5
             },
-            {
-              "raw_score": 60,
+            "60": {
               "pe": 4,
-              "percentile": 2.5
+              "percentil": 2.5
             },
-            {
-              "raw_score": 70,
+            "70": {
               "pe": 3,
-              "percentile": 1.1
+              "percentil": 1.1
             },
-            {
-              "raw_score": 100,
+            "100": {
               "pe": 1,
-              "percentile": 0.1
+              "percentil": 0.1
             }
-          ]
+          }
         }
       ]
     }
