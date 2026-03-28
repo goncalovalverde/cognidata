@@ -430,8 +430,11 @@ def _render_toulouse_pieron_form(patient_id: str):
     st.markdown("""
     **Instrucciones:**
     1. Sube una imagen del test completado (escaneado o fotografía)
-    2. Opcionalmente, usa OCR para detectar marcaciones automáticamente
-    3. Revisa y ajusta los resultados según sea necesario
+    2. Configura la cuadrícula (filas × columnas) y sensibilidad OCR
+    3. Usa OCR para detectar marcaciones automáticamente
+    4. Revisa y ajusta los resultados según sea necesario
+    
+    **Tip**: Para marcas de lápiz claro, usa sensibilidad "Alta" o "Muy alta"
     """)
     
     # Image upload (outside form for OCR button)
@@ -460,7 +463,7 @@ def _render_toulouse_pieron_form(patient_id: str):
         st.markdown("---")
         st.markdown("### 🤖 Análisis Automático (OCR)")
         
-        col_ocr1, col_ocr2 = st.columns([2, 1])
+        col_ocr1, col_ocr2, col_ocr3 = st.columns([2, 1, 1])
         with col_ocr1:
             grid_rows = st.number_input("Filas del test", min_value=10, max_value=50, value=40, 
                                        help="Número de filas en la cuadrícula del test (típicamente 40)")
@@ -468,11 +471,34 @@ def _render_toulouse_pieron_form(patient_id: str):
                                        help="Número de columnas en la cuadrícula del test (típicamente 40)")
         
         with col_ocr2:
+            sensitivity = st.select_slider(
+                "Sensibilidad OCR",
+                options=["Muy baja", "Baja", "Media", "Alta", "Muy alta"],
+                value="Alta",
+                help="Ajusta según el tipo de marcado:\n- Muy alta: Lápiz muy claro\n- Alta: Lápiz normal\n- Media: Bolígrafo\n- Baja/Muy baja: Marcador grueso"
+            )
+            
+            # Map sensitivity to threshold
+            sensitivity_map = {
+                "Muy baja": 0.30,
+                "Baja": 0.22,
+                "Media": 0.18,
+                "Alta": 0.12,
+                "Muy alta": 0.08
+            }
+            threshold = sensitivity_map[sensitivity]
+        
+        with col_ocr3:
+            st.markdown("&nbsp;")  # Spacing
             if st.button("🔍 Analizar Imagen", type="primary"):
-                from services.ocr_processor import ocr_processor
+                from services.ocr_processor import ToulousePieronOCR
                 
                 with st.spinner("Analizando imagen..."):
-                    result = ocr_processor.analyze_image(
+                    # Create OCR processor with custom threshold
+                    ocr = ToulousePieronOCR()
+                    ocr.min_mark_density = threshold
+                    
+                    result = ocr.analyze_image(
                         temp_path,
                         expected_rows=grid_rows,
                         expected_cols=grid_cols

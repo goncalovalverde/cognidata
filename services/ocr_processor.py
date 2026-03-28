@@ -15,9 +15,9 @@ class ToulousePieronOCR:
     """OCR processor for Toulouse-Pieron attention tests"""
     
     def __init__(self):
-        self.min_mark_density = 0.18  # Lower threshold - be more sensitive to marks
+        self.min_mark_density = 0.12  # Lower threshold for light pencil marks
         self.grid_detection_confidence_threshold = 0.7
-        self.denoise_strength = 10
+        self.denoise_strength = 8  # Reduced to preserve light marks
     
     def analyze_image(self, image_path: str, expected_rows: int = None, 
                       expected_cols: int = None) -> Dict:
