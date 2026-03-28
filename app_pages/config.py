@@ -1,5 +1,5 @@
 """
-Configuration page - Settings, backup, and audit logs
+Configuration page - Settings, backup, audit logs, and user management
 """
 
 import streamlit as st
@@ -8,6 +8,10 @@ from datetime import datetime
 import pandas as pd
 
 from services.audit import audit_service
+from services.user_service import (
+    create_user, update_user, delete_user, get_all_users, change_password, hash_password
+)
+from models import UserRole
 
 
 def render():
@@ -20,6 +24,9 @@ def render():
     with col2:
         _render_export_section()
 
+    st.markdown("---")
+    _render_user_management()
+    
     st.markdown("---")
     _render_audit_logs()
 
@@ -48,41 +55,174 @@ def _render_export_section():
         st.info("🚧 Funcionalidad en desarrollo")
 
 
-def _render_audit_logs():
-    """Render audit log viewer"""
-    st.markdown("### 📋 Registro de Auditoría")
+def _render_user_management():
+    """Render user management section"""
+    st.markdown("### 👥 Gestión de Usuarios")
+    
+    tab1, tab2, tab3 = st.tabs(["Ver Usuarios", "Crear Usuario", "Editar/Eliminar Usuario"])
+    
+    with tab1:
+        _render_view_users()
+    
+    with tab2:
+        _render_create_user()
+    
+    with tab3:
+        _render_edit_delete_user()
 
-    with st.expander("Ver logs de auditoría"):
-        log_filter = st.selectbox(
-            "Filtrar por tipo:",
-            [
-                "Todos",
-                "patient.create",
-                "patient.delete",
-                "test.create",
-                "report.generate",
-                "backup.create",
-            ],
-        )
 
-        action_filter = None if log_filter == "Todos" else log_filter
-
-        logs = audit_service.get_logs(action=action_filter, limit=50)
-
-        if logs:
-            log_data = []
-            for log in logs:
-                log_data.append(
-                    {
-                        "Fecha/Hora": log.timestamp.strftime("%d/%m/%Y %H:%M"),
-                        "Acción": log.action,
-                        "Recurso": log.resource_type,
-                        "ID Recurso": log.resource_id or "N/A",
-                        "IP": log.ip_address,
-                    }
-                )
-
-            df_logs = pd.DataFrame(log_data)
-            st.dataframe(df_logs, width='stretch', hide_index=True)
+def _render_view_users():
+    """Render user list"""
+    st.subheader("📋 Lista de Usuarios")
+    
+    try:
+        users = get_all_users()
+        
+        if users:
+            user_data = []
+            for user in users:
+                user_data.append({
+                    "Usuario": user.username,
+                    "Nombre Completo": user.full_name or "N/A",
+                    "Rol": user.role.value,
+                    "Activo": "✅ Sí" if user.is_active else "❌ No",
+                    "Creado": user.created_at.strftime("%d/%m/%Y %H:%M"),
+                })
+            
+            df_users = pd.DataFrame(user_data)
+            st.dataframe(df_users, width='stretch', hide_index=True)
         else:
-            st.info("No hay registros de auditoría")
+            st.info("No hay usuarios registrados")
+    except Exception as e:
+        st.error(f"Error al cargar usuarios: {str(e)}")
+
+
+def _render_create_user():
+    """Render create user form"""
+    st.subheader("➕ Crear Nuevo Usuario")
+    
+    with st.form("create_user_form"):
+        username = st.text_input("Nombre de Usuario", placeholder="ejemplo_usuario")
+        password = st.text_input("Contraseña", type="password", placeholder="Ingrese contraseña")
+        password_confirm = st.text_input("Confirmar Contraseña", type="password", placeholder="Repita contraseña")
+        full_name = st.text_input("Nombre Completo", placeholder="Juan Pérez")
+        role = st.selectbox(
+            "Rol",
+            [UserRole.ADMIN.value, UserRole.PRACTITIONER.value, UserRole.VIEWER.value],
+            index=1  # Default to PRACTITIONER
+        )
+        
+        submitted = st.form_submit_button("➕ Crear Usuario", type="primary")
+        
+        if submitted:
+            # Validation
+            errors = []
+            
+            if not username or len(username) < 3:
+                errors.append("El nombre de usuario debe tener al menos 3 caracteres")
+            
+            if not password or len(password) < 6:
+                errors.append("La contraseña debe tener al menos 6 caracteres")
+            
+            if password != password_confirm:
+                errors.append("Las contraseñas no coinciden")
+            
+            if not full_name or len(full_name) < 3:
+                errors.append("Ingrese un nombre completo válido")
+            
+            if errors:
+                for error in errors:
+                    st.error(f"❌ {error}")
+            else:
+                try:
+                    role_enum = UserRole[role.upper()]
+                    create_user(username, password, full_name, role_enum)
+                    st.success(f"✅ Usuario '{username}' creado exitosamente")
+                    st.rerun()
+                except ValueError as e:
+                    st.error(f"❌ Error: {str(e)}")
+                except Exception as e:
+                    st.error(f"❌ Error al crear usuario: {str(e)}")
+
+
+def _render_edit_delete_user():
+    """Render edit and delete user functionality"""
+    st.subheader("✏️ Editar o Eliminar Usuario")
+    
+    try:
+        users = get_all_users()
+        
+        if not users:
+            st.info("No hay usuarios para editar")
+            return
+        
+        user_options = {u.username: u for u in users}
+        selected_username = st.selectbox(
+            "Seleccionar Usuario",
+            list(user_options.keys()),
+            key="user_select"
+        )
+        
+        if selected_username:
+            selected_user = user_options[selected_username]
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### Editar Información")
+                with st.form("edit_user_form"):
+                    new_full_name = st.text_input(
+                        "Nombre Completo",
+                        value=selected_user.full_name or "",
+                        placeholder="Nombre completo"
+                    )
+                    new_role = st.selectbox(
+                        "Rol",
+                        [UserRole.ADMIN.value, UserRole.PRACTITIONER.value, UserRole.VIEWER.value],
+                        index=[UserRole.ADMIN.value, UserRole.PRACTITIONER.value, UserRole.VIEWER.value].index(selected_user.role.value)
+                    )
+                    
+                    edit_submitted = st.form_submit_button("💾 Guardar Cambios", type="primary")
+                    
+                    if edit_submitted:
+                        try:
+                            role_enum = UserRole[new_role.upper()]
+                            update_user(selected_username, new_full_name, role_enum)
+                            st.success(f"✅ Usuario actualizado exitosamente")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Error al actualizar: {str(e)}")
+            
+            with col2:
+                st.markdown("#### Cambiar Contraseña")
+                with st.form("change_password_form"):
+                    new_password = st.text_input("Nueva Contraseña", type="password", placeholder="Nueva contraseña")
+                    new_password_confirm = st.text_input("Confirmar Contraseña", type="password", placeholder="Repita contraseña")
+                    
+                    pwd_submitted = st.form_submit_button("🔑 Cambiar Contraseña", type="primary")
+                    
+                    if pwd_submitted:
+                        if not new_password or len(new_password) < 6:
+                            st.error("❌ La contraseña debe tener al menos 6 caracteres")
+                        elif new_password != new_password_confirm:
+                            st.error("❌ Las contraseñas no coinciden")
+                        else:
+                            try:
+                                change_password(selected_username, new_password)
+                                st.success(f"✅ Contraseña actualizada exitosamente")
+                            except Exception as e:
+                                st.error(f"❌ Error: {str(e)}")
+            
+            st.markdown("---")
+            st.markdown("#### 🗑️ Eliminar Usuario")
+            if st.button(f"❌ Eliminar usuario '{selected_username}'", key="delete_user_btn"):
+                try:
+                    delete_user(selected_username)
+                    st.success(f"✅ Usuario '{selected_username}' eliminado")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Error al eliminar: {str(e)}")
+    
+    except Exception as e:
+        st.error(f"Error al cargar usuarios: {str(e)}")
+
