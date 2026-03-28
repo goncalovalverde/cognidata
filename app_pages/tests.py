@@ -695,6 +695,16 @@ def _render_torre_de_londres_form(patient_id: str):
     with st.form("torre_de_Londres_form"):
         st.markdown("#### Introduce movimientos y tiempo por ítem")
         
+        # Apply CSS to constrain input field width
+        st.write('''
+        <style>
+        /* Constrain width of text inputs for compact display */
+        form input[type="text"] {
+            max-width: 80px !important;
+        }
+        </style>
+        ''', unsafe_allow_html=True)
+        
         # Create columns for header
         col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
