@@ -695,31 +695,32 @@ def _render_torre_de_londres_form(patient_id: str):
     with st.form("torre_de_Londres_form"):
         st.markdown("#### Introduce movimientos y tiempo por ítem")
         
-        # Apply CSS to constrain input field width
+        # Apply CSS to constrain input field width aggressively
         st.write('''
         <style>
-        /* Constrain width of text inputs for compact display */
-        form input[type="text"] {
-            max-width: 80px !important;
+        /* Force narrow input boxes for Torre de Londres */
+        div[data-testid="stForm"] input[type="text"] {
+            width: 50px !important;
+            padding: 4px 8px !important;
         }
         </style>
         ''', unsafe_allow_html=True)
         
-        # Create columns for header
-        col1, col2, col3 = st.columns([1, 1, 1])
+        # Create columns for header with narrower proportions
+        col1, col2, col3 = st.columns([0.5, 1, 1])
         with col1:
             st.markdown("**Ítem**")
         with col2:
-            st.markdown("**Movimientos**")
+            st.markdown("**Mov.**")
         with col3:
-            st.markdown("**Tiempo (seg)**")
+            st.markdown("**Seg.**")
         
         st.divider()
         
         # Create input rows for each item - free-form text inputs
         for i in range(10):
             item_num = i + 1
-            col1, col2, col3 = st.columns([1, 1, 1])
+            col1, col2, col3 = st.columns([0.5, 1, 1])
             
             with col1:
                 st.write(f"{item_num}")
@@ -729,7 +730,7 @@ def _render_torre_de_londres_form(patient_id: str):
                     f"Movimientos {item_num}",
                     value=st.session_state.tol_items[i]['movements'],
                     placeholder="0",
-                    max_chars=4,
+                    max_chars=3,
                     key=f"tol_movements_{item_num}",
                     label_visibility="collapsed"
                 )
@@ -739,7 +740,7 @@ def _render_torre_de_londres_form(patient_id: str):
                     f"Tiempo {item_num}",
                     value=st.session_state.tol_items[i]['time_seconds'],
                     placeholder="0",
-                    max_chars=4,
+                    max_chars=3,
                     key=f"tol_time_{item_num}",
                     label_visibility="collapsed"
                 )
