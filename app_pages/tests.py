@@ -684,7 +684,6 @@ def _render_torre_de_londres_form(patient_id: str):
     db.close()
     
     st.markdown("### 🏰 Torre de Londres")
-    st.info("Introduce los movimientos y tiempo para cada ítem. Una fila por ítem.")
     
     # Initialize session state for item data if not exists
     if 'tol_items' not in st.session_state:
@@ -694,7 +693,7 @@ def _render_torre_de_londres_form(patient_id: str):
     
     # Create form with table-like input
     with st.form("torre_de_londres_form"):
-        st.markdown("#### Datos por Ítem")
+        st.markdown("#### Introduce movimientos y tiempo por ítem")
         
         # Create columns for header
         col1, col2, col3 = st.columns([1, 2, 2])
@@ -707,7 +706,7 @@ def _render_torre_de_londres_form(patient_id: str):
         
         st.divider()
         
-        # Create input rows for each item
+        # Create input rows for each item - simple number inputs
         for i in range(10):
             item_num = i + 1
             col1, col2, col3 = st.columns([1, 2, 2])
@@ -717,7 +716,7 @@ def _render_torre_de_londres_form(patient_id: str):
             
             with col2:
                 st.session_state.tol_items[i]['movements'] = st.number_input(
-                    f"Movimientos ítem {item_num}",
+                    f"Movimientos {item_num}",
                     min_value=0,
                     value=st.session_state.tol_items[i]['movements'],
                     step=1,
@@ -727,7 +726,7 @@ def _render_torre_de_londres_form(patient_id: str):
             
             with col3:
                 st.session_state.tol_items[i]['time_seconds'] = st.number_input(
-                    f"Tiempo ítem {item_num}",
+                    f"Tiempo {item_num}",
                     min_value=0,
                     value=st.session_state.tol_items[i]['time_seconds'],
                     step=1,
@@ -739,30 +738,27 @@ def _render_torre_de_londres_form(patient_id: str):
         submitted = st.form_submit_button("💾 Calcular y Guardar", type="primary")
         
         if submitted:
-            # Extract movement counts from items
+            # Extract movement counts and times from items
             movement_counts = [item['movements'] for item in st.session_state.tol_items]
+            time_seconds = [item['time_seconds'] for item in st.session_state.tol_items]
             
-            # Calculate metrics
-            result = tol_calculator.calculate(movement_counts)
+            # Calculate metrics (now includes time consideration)
+            result = tol_calculator.calculate(movement_counts, time_seconds)
             
             if not result['valid']:
                 st.error("❌ Errores en los datos:")
                 for error in result['errors']:
                     st.error(f"  • {error}")
             else:
-                # Calculate total time
-                total_time = sum(item['time_seconds'] for item in st.session_state.tol_items)
-                average_time = total_time / 10 if total_time > 0 else 0
-                
                 # Prepare raw data for storage
                 raw_data = {
-                    'items': st.session_state.tol_items,  # Full item data with times
+                    'items': st.session_state.tol_items,
                     'movement_counts': movement_counts,
                     'item_results': result['item_results'],
                     'total_perfect_solutions': result['total_perfect_solutions'],
                     'total_movement_rating': result['total_movement_rating'],
-                    'total_time_seconds': total_time,
-                    'average_time_seconds': average_time
+                    'total_time_seconds': result['total_time_seconds'],
+                    'execution_efficiency': result['execution_efficiency']
                 }
                 
                 # Calculate NEURONORMA scores using total movement rating
@@ -789,14 +785,25 @@ def _render_torre_de_londres_form(patient_id: str):
                              help="Ítems resueltos con el mínimo de movimientos")
                 with col2:
                     st.metric("Calificación Total", result['total_movement_rating'],
-                             help="Suma de movimientos adicionales en todos los ítems")
+                             help="Suma de movimientos adicionales")
                 with col3:
                     efficiency = (result['total_perfect_solutions'] / 10) * 100
                     st.metric("Eficiencia", f"{efficiency:.0f}%", 
                              help="% de ítems resueltos perfectamente")
                 with col4:
-                    st.metric("Tiempo Total", f"{total_time}s",
-                             help="Tiempo total en completar todos los ítems")
+                    st.metric("Tiempo Total", f"{result['total_time_seconds']}s",
+                             help="Tiempo total invertido")
+                
+                # Display time efficiency
+                st.markdown("---")
+                col1, col2 = st.columns(2)
+                with col1:
+                    avg_time = result['total_time_seconds'] / 10
+                    st.metric("Tiempo Promedio por Ítem", f"{avg_time:.1f}s",
+                             help="Promedio de tiempo por ítem")
+                with col2:
+                    st.metric("Eficiencia de Ejecución", f"{result['execution_efficiency']:.2f}",
+                             help="Factor de calidad temporal (0.90-1.00). Basado en velocidad de respuesta.")
                 
                 # Display item-by-item breakdown
                 with st.expander("📋 Desglose Completo por Ítem"):
@@ -807,7 +814,7 @@ def _render_torre_de_londres_form(patient_id: str):
                             'Mínimo': r['minimum_movements'],
                             'Calificación': r['movement_rating'],
                             'Perfecto': '✅' if r['perfect'] else '❌',
-                            'Tiempo (seg)': st.session_state.tol_items[r['item']-1]['time_seconds']
+                            'Tiempo (s)': r['time_seconds']
                         }
                         for r in result['item_results']
                     ])

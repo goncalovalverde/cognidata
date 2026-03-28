@@ -1,8 +1,9 @@
 """
 Tower of London Test Calculator
 Calculates movement ratings and performance metrics for the Tower of London test
+considering both movements and execution time
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 class TowerOfLondonCalculator:
@@ -22,12 +23,13 @@ class TowerOfLondonCalculator:
         10: 7
     }
     
-    def calculate(self, movement_counts: List[int]) -> Dict:
+    def calculate(self, movement_counts: List[int], time_seconds: Optional[List[int]] = None) -> Dict:
         """
         Calculate Tower of London test metrics
         
         Args:
             movement_counts: List of 10 movement counts (one per item)
+            time_seconds: Optional list of 10 time values in seconds (one per item)
             
         Returns:
             Dict with:
@@ -38,12 +40,15 @@ class TowerOfLondonCalculator:
                         'movements_count': 5,
                         'minimum_movements': 4,
                         'movement_rating': 1,
-                        'perfect': False
+                        'perfect': False,
+                        'time_seconds': 45
                     },
                     ...
                 ],
-                'total_perfect_solutions': 0,  # Count of perfect solutions (rating = 0)
-                'total_movement_rating': 12,   # Sum of all movement ratings
+                'total_perfect_solutions': 0,
+                'total_movement_rating': 12,
+                'total_time_seconds': 450,
+                'execution_efficiency': 0.95,  # Based on time quality
                 'valid': True,
                 'errors': []
             }
@@ -52,6 +57,8 @@ class TowerOfLondonCalculator:
             'item_results': [],
             'total_perfect_solutions': 0,
             'total_movement_rating': 0,
+            'total_time_seconds': 0,
+            'execution_efficiency': 1.0,
             'valid': True,
             'errors': []
         }
@@ -62,9 +69,14 @@ class TowerOfLondonCalculator:
             results['errors'].append('Debe proporcionar exactamente 10 elementos')
             return results
         
+        # Default time_seconds if not provided
+        if time_seconds is None:
+            time_seconds = [0] * 10
+        
         # Calculate per-item metrics
         for item_num, movement_count in enumerate(movement_counts, start=1):
             minimum = self.MINIMUM_MOVEMENTS[item_num]
+            time_val = time_seconds[item_num - 1] if item_num <= len(time_seconds) else 0
             
             # Validate movement count >= minimum
             if movement_count < minimum:
@@ -83,16 +95,33 @@ class TowerOfLondonCalculator:
                 'movements_count': movement_count,
                 'minimum_movements': minimum,
                 'movement_rating': movement_rating,
-                'perfect': is_perfect
+                'perfect': is_perfect,
+                'time_seconds': time_val
             })
             
             # Update totals
             if is_perfect:
                 results['total_perfect_solutions'] += 1
             results['total_movement_rating'] += movement_rating
+            results['total_time_seconds'] += time_val
+        
+        # Calculate execution efficiency based on time (0.5 to 1.0 factor)
+        # Considers if times are reasonable (not too fast, not too slow)
+        if results['total_time_seconds'] > 0:
+            avg_time = results['total_time_seconds'] / 10
+            # Ideal average time around 40-60 seconds per item
+            # Deduct efficiency if too fast (<20s) or too slow (>120s)
+            if avg_time < 20:
+                results['execution_efficiency'] = 0.95  # Too fast - possible rushing
+            elif avg_time > 120:
+                results['execution_efficiency'] = 0.90  # Too slow - possible struggle
+            else:
+                # Scale from 0.95 to 1.0 for reasonable times
+                results['execution_efficiency'] = 0.95 + (0.05 * (1 - abs(avg_time - 50) / 70))
         
         return results
 
 
 # Global calculator instance
 calculator = TowerOfLondonCalculator()
+
