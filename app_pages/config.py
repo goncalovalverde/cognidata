@@ -226,3 +226,43 @@ def _render_edit_delete_user():
     except Exception as e:
         st.error(f"Error al cargar usuarios: {str(e)}")
 
+
+def _render_audit_logs():
+    """Render audit log viewer"""
+    st.markdown("### 📋 Registro de Auditoría")
+
+    with st.expander("Ver logs de auditoría"):
+        log_filter = st.selectbox(
+            "Filtrar por tipo:",
+            [
+                "Todos",
+                "patient.create",
+                "patient.delete",
+                "test.create",
+                "report.generate",
+                "backup.create",
+            ],
+        )
+
+        action_filter = None if log_filter == "Todos" else log_filter
+
+        logs = audit_service.get_logs(action=action_filter, limit=50)
+
+        if logs:
+            log_data = []
+            for log in logs:
+                log_data.append(
+                    {
+                        "Fecha/Hora": log.timestamp.strftime("%d/%m/%Y %H:%M"),
+                        "Acción": log.action,
+                        "Recurso": log.resource_type,
+                        "ID Recurso": log.resource_id or "N/A",
+                        "IP": log.ip_address,
+                    }
+                )
+
+            df_logs = pd.DataFrame(log_data)
+            st.dataframe(df_logs, width='stretch', hide_index=True)
+        else:
+            st.info("No hay registros de auditoría")
+
