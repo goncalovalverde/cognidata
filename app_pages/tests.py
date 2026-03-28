@@ -3,6 +3,7 @@ Tests page - Neuropsychological test administration
 """
 
 import streamlit as st
+import pandas as pd
 import os
 from datetime import datetime
 from pathlib import Path
