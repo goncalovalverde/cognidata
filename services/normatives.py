@@ -24,7 +24,8 @@ class NormativeCalculator:
             'TMT-A': 'tmt_a.json',
             'TAVEC': 'tavec.json',
             'Fluidez-FAS': 'fluidez_fas.json',
-            'Toulouse-Pieron': 'toulouse_pieron.json'
+            'Toulouse-Pieron': 'toulouse_pieron.json',
+            'Torre de Londres': 'torre_de_londres.json'
         }
         
         for test_type, filename in test_files.items():

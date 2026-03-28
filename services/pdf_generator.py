@@ -397,6 +397,9 @@ class NeuroPsychReport:
         elif test_type == 'Toulouse-Pieron':
             return raw_data.get('productividad_neta', 'N/A')
         
+        elif test_type == 'Torre de Londres':
+            return f"{raw_data.get('total_movement_rating', 0)} pts"
+        
         return 'N/A'
 
 

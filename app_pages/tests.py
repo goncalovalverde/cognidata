@@ -34,7 +34,7 @@ def render():
 
             test_type = st.selectbox(
                 "Tipo de Test",
-                ["TMT-A", "TMT-B", "TAVEC", "Fluidez-FAS", "Rey-Copia", "Rey-Memoria", "Toulouse-Pieron"],
+                ["TMT-A", "TMT-B", "TAVEC", "Fluidez-FAS", "Rey-Copia", "Rey-Memoria", "Toulouse-Pieron", "Torre de Londres"],
             )
 
             st.markdown("---")
@@ -53,6 +53,8 @@ def render():
                 _render_rey_memoria_form(selected_patient_id)
             elif test_type == "Toulouse-Pieron":
                 _render_toulouse_pieron_form(selected_patient_id)
+            elif test_type == "Torre de Londres":
+                _render_torre_de_londres_form(selected_patient_id)
     finally:
         db.close()
 
@@ -670,3 +672,103 @@ def _render_toulouse_pieron_form(patient_id: str):
             
             # Clear OCR results for next test
             st.session_state.ocr_results = None
+
+
+def _render_torre_de_londres_form(patient_id: str):
+    """Render Tower of London test form with dynamic calculation"""
+    from services.tower_of_london import calculator as tol_calculator
+    
+    db = SessionLocal()
+    patient = db.query(Patient).filter(Patient.id == patient_id).first()
+    db.close()
+    
+    st.markdown("### 🏰 Torre de Londres")
+    st.info("Introduce el número total de movimientos realizados para cada ítem")
+    
+    # Initialize session state for movement counts if not exists
+    if 'tol_movements' not in st.session_state:
+        st.session_state.tol_movements = [0] * 10
+    
+    # Create form with dynamic inputs
+    with st.form("torre_de_londres_form"):
+        st.markdown("#### Cómputo de Movimientos por Ítem")
+        
+        cols = st.columns(5)
+        for i in range(10):
+            item_num = i + 1
+            col_idx = i % 5
+            with cols[col_idx]:
+                st.session_state.tol_movements[i] = st.number_input(
+                    f"Ítem {item_num}",
+                    min_value=0,
+                    value=st.session_state.tol_movements[i],
+                    step=1,
+                    key=f"tol_item_{item_num}"
+                )
+            
+            # Create new row for next 5 items
+            if (i + 1) % 5 == 0 and i < 9:
+                cols = st.columns(5)
+        
+        submitted = st.form_submit_button("💾 Calcular y Guardar", type="primary")
+        
+        if submitted:
+            # Calculate metrics
+            result = tol_calculator.calculate(st.session_state.tol_movements)
+            
+            if not result['valid']:
+                st.error("❌ Errores en los datos:")
+                for error in result['errors']:
+                    st.error(f"  • {error}")
+            else:
+                # Prepare raw data for storage
+                raw_data = {
+                    'movement_counts': st.session_state.tol_movements,
+                    'item_results': result['item_results'],
+                    'total_perfect_solutions': result['total_perfect_solutions'],
+                    'total_movement_rating': result['total_movement_rating']
+                }
+                
+                # Calculate NEURONORMA scores using total movement rating
+                scores = calculator.calculate(
+                    test_type="Torre de Londres",
+                    raw_score=result['total_movement_rating'],
+                    age=patient.age,
+                    education_years=patient.education_years
+                )
+                
+                # Save test session
+                _save_test_session(patient_id, "Torre de Londres", raw_data, scores)
+                
+                st.success("✅ Test Torre de Londres guardado exitosamente!")
+                _display_scores(scores)
+                
+                # Display detailed results
+                st.markdown("---")
+                st.markdown("#### 📊 Resultados Detallados")
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Soluciones Perfectas", result['total_perfect_solutions'], 
+                             help="Ítems resueltos con el mínimo de movimientos")
+                with col2:
+                    st.metric("Calificación Total", result['total_movement_rating'],
+                             help="Suma de movimientos adicionales en todos los ítems")
+                with col3:
+                    efficiency = (result['total_perfect_solutions'] / 10) * 100
+                    st.metric("Eficiencia", f"{efficiency:.0f}%", 
+                             help="% de ítems resueltos perfectamente")
+                
+                # Display item-by-item breakdown
+                with st.expander("📋 Desglose por Ítem"):
+                    item_df = pd.DataFrame([
+                        {
+                            'Ítem': r['item'],
+                            'Movimientos': r['movements_count'],
+                            'Mínimo': r['minimum_movements'],
+                            'Calificación': r['movement_rating'],
+                            'Perfecto': '✅' if r['perfect'] else '❌'
+                        }
+                        for r in result['item_results']
+                    ])
+                    st.dataframe(item_df, use_container_width=True, hide_index=True)
