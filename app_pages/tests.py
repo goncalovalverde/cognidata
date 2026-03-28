@@ -676,7 +676,7 @@ def _render_toulouse_pieron_form(patient_id: str):
 
 
 def _render_torre_de_londres_form(patient_id: str):
-    """Render Tower of London test form with dynamic calculation"""
+    """Render Tower of London test form with movement count and time per item"""
     from services.tower_of_london import calculator as tol_calculator
     
     db = SessionLocal()
@@ -684,50 +684,85 @@ def _render_torre_de_londres_form(patient_id: str):
     db.close()
     
     st.markdown("### 🏰 Torre de Londres")
-    st.info("Introduce el número total de movimientos realizados para cada ítem")
+    st.info("Introduce los movimientos y tiempo para cada ítem. Una fila por ítem.")
     
-    # Initialize session state for movement counts if not exists
-    if 'tol_movements' not in st.session_state:
-        st.session_state.tol_movements = [0] * 10
+    # Initialize session state for item data if not exists
+    if 'tol_items' not in st.session_state:
+        st.session_state.tol_items = [
+            {'movements': 0, 'time_seconds': 0} for _ in range(10)
+        ]
     
-    # Create form with dynamic inputs
+    # Create form with table-like input
     with st.form("torre_de_londres_form"):
-        st.markdown("#### Cómputo de Movimientos por Ítem")
+        st.markdown("#### Datos por Ítem")
         
-        cols = st.columns(5)
+        # Create columns for header
+        col1, col2, col3 = st.columns([1, 2, 2])
+        with col1:
+            st.markdown("**Ítem**")
+        with col2:
+            st.markdown("**Movimientos**")
+        with col3:
+            st.markdown("**Tiempo (seg)**")
+        
+        st.divider()
+        
+        # Create input rows for each item
         for i in range(10):
             item_num = i + 1
-            col_idx = i % 5
-            with cols[col_idx]:
-                st.session_state.tol_movements[i] = st.number_input(
-                    f"Ítem {item_num}",
+            col1, col2, col3 = st.columns([1, 2, 2])
+            
+            with col1:
+                st.write(f"{item_num}")
+            
+            with col2:
+                st.session_state.tol_items[i]['movements'] = st.number_input(
+                    f"Movimientos ítem {item_num}",
                     min_value=0,
-                    value=st.session_state.tol_movements[i],
+                    value=st.session_state.tol_items[i]['movements'],
                     step=1,
-                    key=f"tol_item_{item_num}"
+                    key=f"tol_movements_{item_num}",
+                    label_visibility="collapsed"
                 )
             
-            # Create new row for next 5 items
-            if (i + 1) % 5 == 0 and i < 9:
-                cols = st.columns(5)
+            with col3:
+                st.session_state.tol_items[i]['time_seconds'] = st.number_input(
+                    f"Tiempo ítem {item_num}",
+                    min_value=0,
+                    value=st.session_state.tol_items[i]['time_seconds'],
+                    step=1,
+                    key=f"tol_time_{item_num}",
+                    label_visibility="collapsed"
+                )
         
+        st.divider()
         submitted = st.form_submit_button("💾 Calcular y Guardar", type="primary")
         
         if submitted:
+            # Extract movement counts from items
+            movement_counts = [item['movements'] for item in st.session_state.tol_items]
+            
             # Calculate metrics
-            result = tol_calculator.calculate(st.session_state.tol_movements)
+            result = tol_calculator.calculate(movement_counts)
             
             if not result['valid']:
                 st.error("❌ Errores en los datos:")
                 for error in result['errors']:
                     st.error(f"  • {error}")
             else:
+                # Calculate total time
+                total_time = sum(item['time_seconds'] for item in st.session_state.tol_items)
+                average_time = total_time / 10 if total_time > 0 else 0
+                
                 # Prepare raw data for storage
                 raw_data = {
-                    'movement_counts': st.session_state.tol_movements,
+                    'items': st.session_state.tol_items,  # Full item data with times
+                    'movement_counts': movement_counts,
                     'item_results': result['item_results'],
                     'total_perfect_solutions': result['total_perfect_solutions'],
-                    'total_movement_rating': result['total_movement_rating']
+                    'total_movement_rating': result['total_movement_rating'],
+                    'total_time_seconds': total_time,
+                    'average_time_seconds': average_time
                 }
                 
                 # Calculate NEURONORMA scores using total movement rating
@@ -748,7 +783,7 @@ def _render_torre_de_londres_form(patient_id: str):
                 st.markdown("---")
                 st.markdown("#### 📊 Resultados Detallados")
                 
-                col1, col2, col3 = st.columns(3)
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     st.metric("Soluciones Perfectas", result['total_perfect_solutions'], 
                              help="Ítems resueltos con el mínimo de movimientos")
@@ -759,16 +794,20 @@ def _render_torre_de_londres_form(patient_id: str):
                     efficiency = (result['total_perfect_solutions'] / 10) * 100
                     st.metric("Eficiencia", f"{efficiency:.0f}%", 
                              help="% de ítems resueltos perfectamente")
+                with col4:
+                    st.metric("Tiempo Total", f"{total_time}s",
+                             help="Tiempo total en completar todos los ítems")
                 
                 # Display item-by-item breakdown
-                with st.expander("📋 Desglose por Ítem"):
+                with st.expander("📋 Desglose Completo por Ítem"):
                     item_df = pd.DataFrame([
                         {
                             'Ítem': r['item'],
                             'Movimientos': r['movements_count'],
                             'Mínimo': r['minimum_movements'],
                             'Calificación': r['movement_rating'],
-                            'Perfecto': '✅' if r['perfect'] else '❌'
+                            'Perfecto': '✅' if r['perfect'] else '❌',
+                            'Tiempo (seg)': st.session_state.tol_items[r['item']-1]['time_seconds']
                         }
                         for r in result['item_results']
                     ])
