@@ -5,6 +5,7 @@ Tests page - Neuropsychological test administration
 import streamlit as st
 import os
 from datetime import datetime
+from pathlib import Path
 from PIL import Image
 from database.connection import SessionLocal
 from models import Patient, TestSession
@@ -508,6 +509,38 @@ def _render_toulouse_pieron_form(patient_id: str):
         # Show OCR results if available
         if st.session_state.ocr_results and st.session_state.ocr_results.get('success'):
             ocr = st.session_state.ocr_results
+            
+            st.markdown("---")
+            st.markdown("### 📊 Resultados del Análisis")
+            
+            col_res1, col_res2, col_res3 = st.columns(3)
+            with col_res1:
+                st.metric("Celdas Marcadas", ocr['marked_cells'])
+            with col_res2:
+                st.metric("Celdas No Marcadas", ocr['unmarked_cells'])
+            with col_res3:
+                st.metric("Confianza", f"{ocr['confidence']:.1%}")
+            
+            # Show images in expanders
+            st.markdown("### 📸 Revisión de Imágenes")
+            
+            col_img1, col_img2 = st.columns(2)
+            
+            with col_img1:
+                with st.expander("🔍 Imagen Convertida a Blanco y Negro", expanded=True):
+                    if ocr.get('bw_image_path') and Path(ocr['bw_image_path']).exists():
+                        st.image(ocr['bw_image_path'], use_container_width=True,
+                                caption="Conversión B/N automática - Muestra cómo ve el OCR los marcados")
+                    else:
+                        st.info("No disponible")
+            
+            with col_img2:
+                with st.expander("📍 Análisis de Cuadrícula", expanded=True):
+                    if ocr.get('processed_image_path') and Path(ocr['processed_image_path']).exists():
+                        st.image(ocr['processed_image_path'], use_container_width=True,
+                                caption="Celdas detectadas como marcadas (verde) y no marcadas (rojo)")
+                    else:
+                        st.info("No disponible")
             st.success(f"✅ Análisis completado con {ocr['confidence']*100:.0f}% de confianza")
             
             col1, col2, col3 = st.columns(3)

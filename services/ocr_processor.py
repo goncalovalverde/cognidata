@@ -37,6 +37,7 @@ class ToulousePieronOCR:
                 'marked_cells': int,
                 'confidence': float,
                 'processed_image_path': str (optional),
+                'bw_image_path': str (optional),
                 'error': str (optional)
             }
         """
@@ -48,6 +49,10 @@ class ToulousePieronOCR:
             
             # Preprocess image
             processed = self._preprocess_image(image)
+            
+            # Save black and white conversion for user review
+            bw_path = image_path.replace('.png', '_bw.png')
+            cv2.imwrite(bw_path, processed)
             
             # Detect grid structure
             grid_info = self._detect_grid(processed, expected_rows, expected_cols)
@@ -74,6 +79,7 @@ class ToulousePieronOCR:
                 'grid_rows': grid_info.get('rows', 0),
                 'grid_cols': grid_info.get('cols', 0),
                 'processed_image_path': processed_path,
+                'bw_image_path': bw_path,
                 'cell_details': analysis['cells']
             }
             
@@ -89,8 +95,9 @@ class ToulousePieronOCR:
         """
         Preprocess image for analysis
         - Convert to grayscale
-        - Apply denoising
-        - Adaptive thresholding
+        - Enhance contrast (CLAHE)
+        - Denoise
+        - Adaptive thresholding to proper black and white
         """
         # Convert to grayscale
         if len(image.shape) == 3:
@@ -98,13 +105,22 @@ class ToulousePieronOCR:
         else:
             gray = image
         
-        # Denoise
-        denoised = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
+        # Enhance contrast using CLAHE (Contrast Limited Adaptive Histogram Equalization)
+        # This improves visibility of light pencil marks
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        enhanced = clahe.apply(gray)
         
-        # Adaptive thresholding to handle varying lighting
+        # Denoise - reduced strength to preserve pencil marks
+        denoised = cv2.fastNlMeansDenoising(enhanced, None, 10, 7, 21)
+        
+        # Bilateral filter to smooth while preserving edges
+        bilateral = cv2.bilateralFilter(denoised, 9, 75, 75)
+        
+        # Adaptive thresholding for proper black and white conversion
+        # Handles varying lighting across the page
         thresh = cv2.adaptiveThreshold(
-            denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY_INV, 11, 2
+            bilateral, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY_INV, 15, 3
         )
         
         return thresh
