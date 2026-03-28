@@ -688,11 +688,11 @@ def _render_torre_de_londres_form(patient_id: str):
     # Initialize session state for item data if not exists
     if 'tol_items' not in st.session_state:
         st.session_state.tol_items = [
-            {'movements': 0, 'time_seconds': 0} for _ in range(10)
+            {'movements': '', 'time_seconds': ''} for _ in range(10)
         ]
     
     # Create form with table-like input
-    with st.form("torre_de_londres_form"):
+    with st.form("torre_de_Londres_form"):
         st.markdown("#### Introduce movimientos y tiempo por ítem")
         
         # Create columns for header
@@ -706,7 +706,7 @@ def _render_torre_de_londres_form(patient_id: str):
         
         st.divider()
         
-        # Create input rows for each item - simple number inputs
+        # Create input rows for each item - free-form text inputs
         for i in range(10):
             item_num = i + 1
             col1, col2, col3 = st.columns([1, 2, 2])
@@ -715,21 +715,19 @@ def _render_torre_de_londres_form(patient_id: str):
                 st.write(f"{item_num}")
             
             with col2:
-                st.session_state.tol_items[i]['movements'] = st.number_input(
+                st.session_state.tol_items[i]['movements'] = st.text_input(
                     f"Movimientos {item_num}",
-                    min_value=0,
                     value=st.session_state.tol_items[i]['movements'],
-                    step=1,
+                    placeholder="0",
                     key=f"tol_movements_{item_num}",
                     label_visibility="collapsed"
                 )
             
             with col3:
-                st.session_state.tol_items[i]['time_seconds'] = st.number_input(
+                st.session_state.tol_items[i]['time_seconds'] = st.text_input(
                     f"Tiempo {item_num}",
-                    min_value=0,
                     value=st.session_state.tol_items[i]['time_seconds'],
-                    step=1,
+                    placeholder="0",
                     key=f"tol_time_{item_num}",
                     label_visibility="collapsed"
                 )
@@ -738,12 +736,39 @@ def _render_torre_de_londres_form(patient_id: str):
         submitted = st.form_submit_button("💾 Calcular y Guardar", type="primary")
         
         if submitted:
-            # Extract movement counts and times from items
-            movement_counts = [item['movements'] for item in st.session_state.tol_items]
-            time_seconds = [item['time_seconds'] for item in st.session_state.tol_items]
+            # Validate and convert inputs
+            movement_counts = []
+            time_seconds = []
+            validation_errors = []
             
-            # Calculate metrics (now includes time consideration)
-            result = tol_calculator.calculate(movement_counts, time_seconds)
+            for i in range(10):
+                item_num = i + 1
+                
+                # Validate movements
+                try:
+                    mov = int(st.session_state.tol_items[i]['movements']) if st.session_state.tol_items[i]['movements'] else 0
+                    if mov < 0:
+                        validation_errors.append(f"Ítem {item_num}: Movimientos no puede ser negativo")
+                    movement_counts.append(mov)
+                except ValueError:
+                    validation_errors.append(f"Ítem {item_num}: Movimientos debe ser un número")
+                
+                # Validate time
+                try:
+                    time_val = int(st.session_state.tol_items[i]['time_seconds']) if st.session_state.tol_items[i]['time_seconds'] else 0
+                    if time_val < 0:
+                        validation_errors.append(f"Ítem {item_num}: Tiempo no puede ser negativo")
+                    time_seconds.append(time_val)
+                except ValueError:
+                    validation_errors.append(f"Ítem {item_num}: Tiempo debe ser un número")
+            
+            if validation_errors:
+                st.error("❌ Errores en los datos:")
+                for error in validation_errors:
+                    st.error(f"  • {error}")
+            else:
+                # Calculate metrics (now includes time consideration)
+                result = tol_calculator.calculate(movement_counts, time_seconds)
             
             if not result['valid']:
                 st.error("❌ Errores en los datos:")
