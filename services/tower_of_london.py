@@ -32,26 +32,7 @@ class TowerOfLondonCalculator:
             time_seconds: Optional list of 10 time values in seconds (one per item)
             
         Returns:
-            Dict with:
-            {
-                'item_results': [
-                    {
-                        'item': 1,
-                        'movements_count': 5,
-                        'minimum_movements': 4,
-                        'movement_rating': 1,
-                        'perfect': False,
-                        'time_seconds': 45
-                    },
-                    ...
-                ],
-                'total_perfect_solutions': 0,
-                'total_movement_rating': 12,
-                'total_time_seconds': 450,
-                'execution_efficiency': 0.95,  # Based on time quality
-                'valid': True,
-                'errors': []
-            }
+            Dict with metrics and composite_raw_score for NEURONORMA
         """
         results = {
             'item_results': [],
@@ -59,6 +40,7 @@ class TowerOfLondonCalculator:
             'total_movement_rating': 0,
             'total_time_seconds': 0,
             'execution_efficiency': 1.0,
+            'composite_raw_score': 0,  # For NEURONORMA scoring
             'valid': True,
             'errors': []
         }
@@ -118,6 +100,33 @@ class TowerOfLondonCalculator:
             else:
                 # Scale from 0.95 to 1.0 for reasonable times
                 results['execution_efficiency'] = 0.95 + (0.05 * (1 - abs(avg_time - 50) / 70))
+        
+        # Calculate composite raw score for NEURONORMA
+        # Composite = base movement score + time penalty
+        # Movement score: already calculated as total_movement_rating
+        # Time factor: penalty based on deviation from optimal (300-1000s total)
+        base_score = results['total_movement_rating']
+        
+        if results['total_time_seconds'] > 0:
+            total_time = results['total_time_seconds']
+            # Optimal range: 300-1000 seconds (30-100 per item)
+            # Penalty increases outside this range
+            if total_time < 300:  # Very fast (rushing)
+                # Fast penalty: +20% extra to movement score
+                time_penalty = base_score * 0.20
+            elif total_time > 1000:  # Very slow (struggling)
+                # Slow penalty: +40% extra to movement score
+                time_penalty = base_score * 0.40
+            else:  # Optimal range
+                # Minimal penalty, scale from 0-5% based on deviation
+                mid_point = 650  # Center of optimal range
+                deviation = abs(total_time - mid_point) / mid_point
+                time_penalty = base_score * min(0.05 * deviation, 0.05)
+        else:
+            time_penalty = 0
+        
+        # Composite score for NEURONORMA
+        results['composite_raw_score'] = base_score + time_penalty
         
         return results
 

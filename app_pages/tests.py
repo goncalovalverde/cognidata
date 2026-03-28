@@ -758,13 +758,14 @@ def _render_torre_de_londres_form(patient_id: str):
                     'total_perfect_solutions': result['total_perfect_solutions'],
                     'total_movement_rating': result['total_movement_rating'],
                     'total_time_seconds': result['total_time_seconds'],
-                    'execution_efficiency': result['execution_efficiency']
+                    'execution_efficiency': result['execution_efficiency'],
+                    'composite_raw_score': result['composite_raw_score']
                 }
                 
-                # Calculate NEURONORMA scores using total movement rating
+                # Calculate NEURONORMA scores using composite score (movements + time)
                 scores = calculator.calculate(
                     test_type="Torre de Londres",
-                    raw_score=result['total_movement_rating'],
+                    raw_score=result['composite_raw_score'],
                     age=patient.age,
                     education_years=patient.education_years
                 )
