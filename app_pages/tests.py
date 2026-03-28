@@ -696,7 +696,7 @@ def _render_torre_de_londres_form(patient_id: str):
         st.markdown("#### Introduce movimientos y tiempo por ítem")
         
         # Create columns for header
-        col1, col2, col3 = st.columns([1, 2, 2])
+        col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
             st.markdown("**Ítem**")
         with col2:
@@ -709,7 +709,7 @@ def _render_torre_de_londres_form(patient_id: str):
         # Create input rows for each item - free-form text inputs
         for i in range(10):
             item_num = i + 1
-            col1, col2, col3 = st.columns([1, 2, 2])
+            col1, col2, col3 = st.columns([1, 1, 1])
             
             with col1:
                 st.write(f"{item_num}")
