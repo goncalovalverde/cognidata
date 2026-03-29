@@ -14,6 +14,7 @@ class TestSession(Base):
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     patient_id = Column(String, ForeignKey("patients.id"), nullable=False)
+    protocol_id = Column(String, ForeignKey("protocols.id"), nullable=True)
     test_type = Column(String, nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
     raw_data = Column(Text)
@@ -21,6 +22,7 @@ class TestSession(Base):
     qualitative_data = Column(Text, nullable=True)
     
     patient = relationship("Patient", back_populates="sessions")
+    protocol = relationship("Protocol", back_populates="test_sessions")
     
     def set_raw_data(self, data: dict):
         self.raw_data = json.dumps(data, ensure_ascii=False)

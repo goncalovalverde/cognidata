@@ -55,6 +55,11 @@ class Protocol(Base):
         back_populates='protocol',
         cascade='all, delete-orphan'
     )
+    test_sessions = relationship(
+        'TestSession',
+        back_populates='protocol',
+        foreign_keys='TestSession.protocol_id'
+    )
     
     def add_test(self, test_type: str, order: int = None):
         """Add a test to this protocol"""

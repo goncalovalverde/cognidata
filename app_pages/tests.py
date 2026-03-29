@@ -12,6 +12,7 @@ from database.connection import SessionLocal
 from models import Patient, TestSession
 from services.normatives import calculator
 from services.audit import audit_service
+from services.patient_protocol_service import patient_protocol_service
 
 
 def render():
@@ -32,6 +33,29 @@ def render():
                 "Seleccionar Paciente", list(patient_options.keys())
             )
             selected_patient_id = patient_options[selected_patient_label]
+
+            # Show protocol information if available
+            assignments = patient_protocol_service.get_patient_protocols(selected_patient_id)
+            if assignments:
+                col1, col2, col3 = st.columns(3)
+                for i, assignment in enumerate(assignments):
+                    if i >= 3:  # Show max 3 protocols
+                        break
+                    protocol = assignment.protocol
+                    completion = patient_protocol_service.get_protocol_completion_status(
+                        selected_patient_id, protocol.id
+                    )
+                    with col1 if i == 0 else (col2 if i == 1 else col3):
+                        st.metric(
+                            f"📑 {protocol.name[:20]}",
+                            f"{completion['percentage']}%",
+                            f"{completion['completed_tests']}/{completion['total_tests']}"
+                        )
+                
+                if len(assignments) > 3:
+                    st.caption(f"... y {len(assignments) - 3} más protocolos")
+                
+                st.markdown("---")
 
             test_type = st.selectbox(
                 "Tipo de Test",
@@ -84,6 +108,22 @@ def _save_test_session(
     db = SessionLocal()
     try:
         session = TestSession(patient_id=patient_id, test_type=test_type)
+        
+        # Try to find an active protocol for this test
+        assignments = patient_protocol_service.get_patient_protocols(patient_id)
+        for assignment in assignments:
+            protocol = assignment.protocol
+            # Check if this test type is in the protocol
+            test_types = [t.test_type for t in protocol.tests]
+            if test_type in test_types and assignment.status in ["pending", "in_progress"]:
+                session.protocol_id = protocol.id
+                # Update status to in_progress if it was pending
+                if assignment.status == "pending":
+                    patient_protocol_service.update_protocol_status(
+                        patient_id, protocol.id, "in_progress"
+                    )
+                break
+        
         session.set_raw_data(raw_data)
         session.set_calculated_scores(scores)
         db.add(session)
