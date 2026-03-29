@@ -95,10 +95,14 @@ def _render_view_protocols():
     
     # Display as expandable sections instead of table
     st.markdown("#### Protocolos:")
+    st.write(f"DEBUG: Looping over {len(filtered_protocols)} protocols")  # Debug
     for i, protocol in enumerate(filtered_protocols):
+        st.write(f"DEBUG LOOP: Protocol {i}: {protocol.name}, ID: {protocol.id}")  # Debug
         # Check if deletion is being confirmed for this protocol
         confirm_key = f"confirm_delete_{protocol.id}"
-        if st.session_state.get(confirm_key, False):
+        is_confirming = st.session_state.get(confirm_key, False)
+        st.write(f"DEBUG CHECK: {protocol.name} confirm_key={confirm_key}, is_confirming={is_confirming}")  # Debug
+        if is_confirming:
             st.write(f"DEBUG CONFIRM: Showing confirmation dialog for {protocol.name}")
             st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}'")
             col1, col2 = st.columns(2)
@@ -156,7 +160,10 @@ def _render_view_protocols():
                 
                 with col_del:
                     if st.button("🗑️ Eliminar", key=f"del_{protocol.id}"):
+                        st.write(f"DEBUG DELETE CLICK: Setting confirm_delete_{protocol.id} = True")  # Debug
                         st.session_state[f"confirm_delete_{protocol.id}"] = True
+                        st.write(f"DEBUG DELETE CLICK: Session state = {st.session_state.get(f'confirm_delete_{protocol.id}')}")  # Debug
+                        st.write("DEBUG DELETE CLICK: About to rerun")  # Debug
                         st.rerun()
 
 
