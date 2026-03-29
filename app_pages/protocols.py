@@ -45,9 +45,11 @@ def _render_view_protocols():
     st.subheader("Protocolos Disponibles")
     
     # Check if we just deleted a protocol
-    if st.session_state.get("show_delete_success_modal", False):
+    show_delete = st.session_state.get("show_delete_success_modal", False)
+    st.write(f"DEBUG START: show_delete_success_modal = {show_delete}")  # Debug line
+    if show_delete:
         deleted_name = st.session_state.get("deleted_protocol_name", "Protocolo")
-        # Use st.success instead of modal to test if session state works
+        st.write(f"DEBUG: Deleted protocol detected: {deleted_name}")  # Debug line
         st.success(f"✅ Protocolo '{deleted_name}' eliminado correctamente")
         st.session_state.show_delete_success_modal = False
     
@@ -100,17 +102,21 @@ def _render_view_protocols():
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_view", type="primary"):
+                    st.write("DEBUG 1: Delete button clicked")  # Debug line
                     protocol_service.delete_protocol(protocol.id)
+                    st.write("DEBUG 2: Protocol deleted from DB")  # Debug line
                     audit_service.log(
                         action="protocol.delete",
                         resource_type="protocol",
                         resource_id=protocol.id,
                         details={"name": protocol.name}
                     )
+                    st.write("DEBUG 3: Audit logged")  # Debug line
                     st.session_state[f"confirm_delete_{protocol.id}"] = False
                     # Store deletion info for modal display on next render
                     st.session_state.show_delete_success_modal = True
                     st.session_state.deleted_protocol_name = protocol.name
+                    st.write(f"DEBUG 4: Session state set - show_delete={st.session_state.show_delete_success_modal}")  # Debug line
                     st.rerun()
             with col2:
                 if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view"):
