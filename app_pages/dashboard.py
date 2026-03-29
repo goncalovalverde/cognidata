@@ -8,15 +8,28 @@ import pandas as pd
 import os
 
 from database.connection import SessionLocal
-from models import Patient, TestSession
+from models import Patient, TestSession, Protocol
 from services.pdf_generator import pdf_generator
 from services.audit import audit_service
+from services.patient_protocol_service import patient_protocol_service
 
 
 def render():
     """Render the dashboard page"""
     st.subheader("📊 Panel de Análisis y Perfil Cognitivo")
 
+    # Create tabs
+    tab1, tab2 = st.tabs(["🧪 Perfil Cognitivo", "📑 Estadísticas de Protocolos"])
+    
+    with tab1:
+        _render_cognitive_profile()
+    
+    with tab2:
+        _render_protocol_statistics()
+
+
+def _render_cognitive_profile():
+    """Render cognitive profile for a patient"""
     db = SessionLocal()
     try:
         patients = db.query(Patient).order_by(Patient.created_at.desc()).all()
@@ -32,7 +45,7 @@ def render():
             for p in patients
         }
         selected_patient_label = st.selectbox(
-            "Seleccionar Paciente para Análisis", list(patient_options.keys())
+            "Seleccionar Paciente para Análisis", list(patient_options.keys()), key="profile_patient"
         )
         selected_patient_id = patient_options[selected_patient_label]
 
@@ -80,6 +93,101 @@ def render():
         _render_summary_table(sessions_data)
         _render_interpretation()
         _render_export_section(patient_data, sessions_data)
+
+
+def _render_protocol_statistics():
+    """Render protocol statistics and trending"""
+    db = SessionLocal()
+    try:
+        protocols = db.query(Protocol).all()
+        
+        if not protocols:
+            st.info("No hay protocolos definidos. Crea uno en la sección 'Protocolos'")
+            return
+        
+        # Protocol usage statistics
+        st.subheader("📊 Uso de Protocolos")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        # Count protocols
+        col1.metric("Total de Protocolos", len(protocols))
+        
+        # Count assignments
+        db_assign = SessionLocal()
+        try:
+            from models import PatientProtocol
+            assignments = db_assign.query(PatientProtocol).all()
+            col2.metric("Protocolos Asignados", len(assignments))
+            
+            # Count completed
+            completed = len([a for a in assignments if a.status == "completed"])
+            col3.metric("Protocolos Completados", completed)
+        finally:
+            db_assign.close()
+        
+        st.markdown("---")
+        
+        # Protocol details
+        st.subheader("Detalles por Protocolo")
+        
+        for protocol in protocols:
+            assignments = patient_protocol_service.get_patient_protocols_for_protocol(protocol.id)
+            
+            completed_count = sum(1 for a in assignments if a.status == "completed")
+            in_progress_count = sum(1 for a in assignments if a.status == "in_progress")
+            pending_count = sum(1 for a in assignments if a.status == "pending")
+            
+            with st.expander(f"🧪 {protocol.name} ({len(assignments)} pacientes)"):
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("Total", len(assignments))
+                col2.metric("Completados", completed_count)
+                col3.metric("En Progreso", in_progress_count)
+                col4.metric("Pendientes", pending_count)
+                
+                # Progress bar
+                if len(assignments) > 0:
+                    percentage = int((completed_count / len(assignments)) * 100)
+                    st.progress(percentage / 100)
+                    st.caption(f"Tasa de Completación: {percentage}%")
+                
+                st.markdown(f"**Categoría:** {protocol.category or '—'}")
+                st.markdown(f"**Testes:** {len(protocol.tests)}")
+        
+        st.markdown("---")
+        
+        # Chart: Completion rate by protocol
+        st.subheader("📈 Gráfico de Completación")
+        
+        protocol_names = []
+        completion_rates = []
+        
+        for protocol in protocols:
+            assignments = patient_protocol_service.get_patient_protocols_for_protocol(protocol.id)
+            if len(assignments) > 0:
+                completed = sum(1 for a in assignments if a.status == "completed")
+                rate = int((completed / len(assignments)) * 100)
+                protocol_names.append(protocol.name[:20])
+                completion_rates.append(rate)
+        
+        if protocol_names:
+            fig = go.Figure(data=go.Bar(
+                x=protocol_names,
+                y=completion_rates,
+                marker_color=['#22c55e' if r >= 75 else '#3b82f6' if r >= 50 else '#fbbf24' for r in completion_rates],
+                text=completion_rates,
+                textposition='auto',
+            ))
+            fig.update_layout(
+                title="Tasa de Completación por Protocolo",
+                xaxis_title="Protocolo",
+                yaxis_title="Porcentaje Completado (%)",
+                height=400
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    finally:
+        db.close()
 
 
 def _render_patient_info(patient_data: dict, session_count: int):

@@ -208,6 +208,26 @@ class PatientProtocolService:
         finally:
             db.close()
 
+    @staticmethod
+    def get_patient_protocols_for_protocol(protocol_id: str) -> list:
+        """
+        Get all patient assignments for a specific protocol
+        
+        Args:
+            protocol_id: Protocol UUID
+        
+        Returns:
+            List of PatientProtocol assignments for this protocol
+        """
+        db = SessionLocal()
+        try:
+            assignments = db.query(PatientProtocol).filter(
+                PatientProtocol.protocol_id == protocol_id
+            ).all()
+            return assignments
+        finally:
+            db.close()
+
 
 # Create a singleton instance
 patient_protocol_service = PatientProtocolService()
