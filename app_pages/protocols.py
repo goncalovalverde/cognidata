@@ -108,32 +108,28 @@ def _render_view_protocols():
             
             st.write(f"DEBUG: About to render delete buttons for {protocol.name}")
             
-            # Render buttons without columns
-            btn_col1, btn_col2 = st.columns(2)
+            # Render buttons inline
+            if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_view_{i}", type="primary"):
+                st.write("DEBUG 1: Delete button clicked")
+                protocol_service.delete_protocol(protocol.id)
+                st.write("DEBUG 2: Protocol deleted from DB")
+                audit_service.log(
+                    action="protocol.delete",
+                    resource_type="protocol",
+                    resource_id=protocol.id,
+                    details={"name": protocol.name}
+                )
+                st.write("DEBUG 3: Audit logged")
+                st.session_state[confirm_key] = False
+                st.session_state.show_delete_success_modal = True
+                st.session_state.deleted_protocol_name = protocol.name
+                st.write(f"DEBUG 4: Session state set - show_delete={st.session_state.show_delete_success_modal}")
+                st.rerun()
             
-            with btn_col1:
-                if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_view_{i}", type="primary", use_container_width=True):
-                    st.write("DEBUG 1: Delete button clicked")
-                    protocol_service.delete_protocol(protocol.id)
-                    st.write("DEBUG 2: Protocol deleted from DB")
-                    audit_service.log(
-                        action="protocol.delete",
-                        resource_type="protocol",
-                        resource_id=protocol.id,
-                        details={"name": protocol.name}
-                    )
-                    st.write("DEBUG 3: Audit logged")
-                    st.session_state[confirm_key] = False
-                    st.session_state.show_delete_success_modal = True
-                    st.session_state.deleted_protocol_name = protocol.name
-                    st.write(f"DEBUG 4: Session state set - show_delete={st.session_state.show_delete_success_modal}")
-                    st.rerun()
-            
-            with btn_col2:
-                if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view_{i}", use_container_width=True):
-                    st.write("DEBUG CANCEL: Cancel button clicked")
-                    st.session_state[confirm_key] = False
-                    st.rerun()
+            if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view_{i}"):
+                st.write("DEBUG CANCEL: Cancel button clicked")
+                st.session_state[confirm_key] = False
+                st.rerun()
             
             continue
         
