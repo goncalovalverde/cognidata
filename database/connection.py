@@ -31,3 +31,27 @@ def init_db():
     from models import patient, test_session, audit_log, user, protocol
 
     Base.metadata.create_all(bind=engine)
+    
+    # Run migrations
+    _migrate_database()
+
+
+def _migrate_database():
+    """Run database migrations"""
+    conn = engine.raw_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Add protocol_id column to test_sessions if it doesn't exist
+        cursor.execute("PRAGMA table_info(test_sessions)")
+        columns = [col[1] for col in cursor.fetchall()]
+        
+        if 'protocol_id' not in columns:
+            cursor.execute("""
+                ALTER TABLE test_sessions 
+                ADD COLUMN protocol_id TEXT
+            """)
+            conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
