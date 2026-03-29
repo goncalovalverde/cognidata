@@ -98,6 +98,7 @@ def _render_view_protocols():
     for i, protocol in enumerate(filtered_protocols):
         # Check if deletion is being confirmed for this protocol
         if st.session_state.get(f"confirm_delete_{protocol.id}", False):
+            st.write(f"DEBUG CONFIRM: Showing confirmation dialog for {protocol.name}")  # Debug line
             st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}'")
             col1, col2 = st.columns(2)
             with col1:
