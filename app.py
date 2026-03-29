@@ -11,7 +11,7 @@ from streamlit_option_menu import option_menu
 from database.connection import init_db
 from utils.auth import require_auth, render_user_menu, init_auth_state
 from utils.colors import COLORS
-from app_pages import home, patients, tests, dashboard, config
+from app_pages import home, patients, tests, dashboard, config, protocols
 
 
 st.set_page_config(
@@ -66,8 +66,8 @@ def main():
         # Menú de navegación con colores profesionales
         page = option_menu(
             menu_title="📋 Navegación",
-            options=["Inicio", "Pacientes", "Tests", "Dashboard", "Configuración"],
-            icons=["house-fill", "people-fill", "clipboard-data", "graph-up", "gear-fill"],
+            options=["Inicio", "Pacientes", "Tests", "Protocolos", "Dashboard", "Configuración"],
+            icons=["house-fill", "people-fill", "clipboard-data", "bookmark-fill", "graph-up", "gear-fill"],
             menu_icon="list",
             default_index=0,
             styles={
@@ -116,6 +116,8 @@ def main():
         patients.render()
     elif page == "Tests":
         tests.render()
+    elif page == "Protocolos":
+        protocols.render()
     elif page == "Dashboard":
         dashboard.render()
     elif page == "Configuración":
