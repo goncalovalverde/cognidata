@@ -44,15 +44,6 @@ def _render_view_protocols():
     """Render list of all protocols"""
     st.subheader("Protocolos Disponibles")
     
-    # Check if we just deleted a protocol
-    show_delete = st.session_state.get("show_delete_success_modal", False)
-    st.write(f"DEBUG START: show_delete_success_modal = {show_delete}")  # Debug line
-    if show_delete:
-        deleted_name = st.session_state.get("deleted_protocol_name", "Protocolo")
-        st.write(f"DEBUG: Deleted protocol detected: {deleted_name}")  # Debug line
-        st.success(f"✅ Protocolo '{deleted_name}' eliminado correctamente")
-        st.session_state.show_delete_success_modal = False
-    
     # Get all protocols
     protocols = protocol_service.list_protocols()
     categories = protocol_service.list_categories()
@@ -95,42 +86,10 @@ def _render_view_protocols():
     
     # Display as expandable sections instead of table
     st.markdown("#### Protocolos:")
-    st.write(f"DEBUG: Looping over {len(filtered_protocols)} protocols")  # Debug
     for i, protocol in enumerate(filtered_protocols):
-        st.write(f"DEBUG LOOP: Protocol {i}: {protocol.name}, ID: {protocol.id}")  # Debug
-        # Check if deletion is being confirmed for this protocol
-        confirm_key = f"confirm_delete_{protocol.id}"
-        is_confirming = st.session_state.get(confirm_key, False)
-        st.write(f"DEBUG CHECK: {protocol.name} confirm_key={confirm_key}, is_confirming={is_confirming}")  # Debug
-        if is_confirming:
-            st.write(f"DEBUG CONFIRM: Showing confirmation dialog for {protocol.name}")
-            st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}'")
-            
-            st.write(f"DEBUG: About to render delete buttons for {protocol.name}")
-            
-            # Render buttons inline
-            if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_view_{i}", type="primary"):
-                st.write("DEBUG 1: Delete button clicked")
-                protocol_service.delete_protocol(protocol.id)
-                st.write("DEBUG 2: Protocol deleted from DB")
-                audit_service.log(
-                    action="protocol.delete",
-                    resource_type="protocol",
-                    resource_id=protocol.id,
-                    details={"name": protocol.name}
-                )
-                st.write("DEBUG 3: Audit logged")
-                st.session_state[confirm_key] = False
-                st.session_state.show_delete_success_modal = True
-                st.session_state.deleted_protocol_name = protocol.name
-                st.write(f"DEBUG 4: Session state set - show_delete={st.session_state.show_delete_success_modal}")
-                st.rerun()
-            
-            if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view_{i}"):
-                st.write("DEBUG CANCEL: Cancel button clicked")
-                st.session_state[confirm_key] = False
-                st.rerun()
-            
+        # Check if deletion modal should be shown
+        if st.session_state.get("show_delete_confirmation", False) and st.session_state.get("delete_protocol_id") == protocol.id:
+            show_delete_confirmation_modal(protocol.name, protocol.id)
             continue
         
         with st.expander(f"🧪 **{protocol.name}** ({len(protocol.tests)} testes)", expanded=False):
@@ -161,10 +120,8 @@ def _render_view_protocols():
                 
                 with col_del:
                     if st.button("🗑️ Eliminar", key=f"del_{protocol.id}"):
-                        st.write(f"DEBUG DELETE CLICK: Setting confirm_delete_{protocol.id} = True")  # Debug
-                        st.session_state[f"confirm_delete_{protocol.id}"] = True
-                        st.write(f"DEBUG DELETE CLICK: Session state = {st.session_state.get(f'confirm_delete_{protocol.id}')}")  # Debug
-                        st.write("DEBUG DELETE CLICK: About to rerun")  # Debug
+                        st.session_state.show_delete_confirmation = True
+                        st.session_state.delete_protocol_id = protocol.id
                         st.rerun()
 
 
@@ -270,14 +227,6 @@ def _render_create_protocol():
 def _render_edit_protocol():
     """Render form to edit existing protocol"""
     st.subheader("Editar Protocolo")
-    
-    # Check if we just deleted a protocol
-    if st.session_state.get("show_delete_success_modal", False):
-        deleted_name = st.session_state.get("deleted_protocol_name", "Protocolo")
-        # Use st.success instead of modal to test if session state works
-        st.success(f"✅ Protocolo '{deleted_name}' eliminado correctamente")
-        st.session_state.show_delete_success_modal = False
-        return  # Exit, user will need to reselect
     
     protocols = protocol_service.list_protocols()
     if not protocols:
@@ -406,51 +355,59 @@ def _render_edit_protocol():
     st.markdown("**Zona de Peligro:**")
     
     if st.button("🗑️ Eliminar Protocolo", type="secondary", use_container_width=True):
-        _confirm_delete_protocol(protocol, context="edit")
+        st.session_state.show_delete_confirmation = True
+        st.session_state.delete_protocol_id = protocol.id
+        st.rerun()
 
 
-def _confirm_delete_protocol(protocol: Protocol, context: str = "edit"):
-    """Confirm and delete a protocol
+@st.dialog("⚠️ Confirmar Eliminação", width="large")
+def show_delete_confirmation_modal(protocol_name: str, protocol_id: str):
+    """Show a modal dialog to confirm protocol deletion"""
+    st.markdown(f"""
+    <div style='
+        background-color: #ffebee;
+        border-left: 4px solid #ef5350;
+        padding: 16px;
+        border-radius: 6px;
+        color: #212121;
+        font-size: 16px;
+    '>
+        ¿Está seguro de que desea eliminar el protocolo "<b>{protocol_name}</b>"?
+        <br><br>
+        Esta acción es <b>irreversible</b> y eliminará todas las pruebas asociadas.
+    </div>
+    """, unsafe_allow_html=True)
     
-    Args:
-        protocol: The protocol to delete
-        context: Either "view" or "edit" to ensure unique button keys
-    """
-    session_key = f"confirm_delete_{protocol.id}"
-    
-    # Check if we're in confirmation state
-    if not st.session_state.get(session_key, False):
-        # First click - show confirmation
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("⚠️ ¿Está seguro?", key=f"confirm_ask_{protocol.id}_{context}", type="primary"):
-                st.session_state[session_key] = True
-                st.rerun()
-        return
-    
-    # Second click - show confirmation dialog
-    st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}' y todas sus asociaciones.")
+    st.markdown("---")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_{context}", type="primary"):
-            protocol_service.delete_protocol(protocol.id)
+        if st.button("✅ Sí, eliminar", type="primary", use_container_width=True):
+            # Delete the protocol
+            protocol_service.delete_protocol(protocol_id)
             
+            # Log audit
             audit_service.log(
                 action="protocol.delete",
                 resource_type="protocol",
-                resource_id=protocol.id,
-                details={"name": protocol.name}
+                resource_id=protocol_id,
+                details={"name": protocol_name}
             )
             
-            st.session_state[session_key] = False
-            # Store deletion info for modal display on next render
-            st.session_state.show_delete_success_modal = True
-            st.session_state.deleted_protocol_name = protocol.name
+            # Show success modal
+            modal_success(
+                f"Protocolo '{protocol_name}' eliminado correctamente",
+                title="✅ Protocolo Eliminado"
+            )
+            
+            # Clear session state and rerun
+            st.session_state.show_delete_confirmation = False
+            st.session_state.delete_protocol_id = None
             st.rerun()
     
     with col2:
-        if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_{context}"):
-            st.session_state[session_key] = False
+        if st.button("❌ Cancelar", use_container_width=True):
+            st.session_state.show_delete_confirmation = False
             st.rerun()
+
