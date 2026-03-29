@@ -1,39 +1,39 @@
 """
 Color palette for CogniData application
-Based on professional psychology clinic color scheme
+Based on modern neuropsychology clinic design (Triune Neuropsicología inspired)
 """
 
-# Main color palette - Professional Healthcare Theme
+# Main color palette - Modern Neuropsychology Clinic Theme
 COLORS = {
-    # Primary: Therapeutic Green - Represents trust, healing, wellbeing
-    "primary": "#2E7D32",           # Main therapeutic green
-    "primary_dark": "#1B5E20",      # Darker green for text emphasis
-    "primary_light": "#81C784",     # Lighter green for hover states
+    # Primary: Modern Purple/Violet - Represents innovation, expertise, creativity
+    "primary": "#7E57C2",           # Modern purple
+    "primary_dark": "#5E35B1",      # Darker purple
+    "primary_light": "#B39DDB",     # Lighter purple
     
-    # Secondary: Professional Blue - Represents trust, professionalism, stability
-    "secondary": "#1976D2",         # Professional blue
-    "secondary_dark": "#1565C0",    # Darker blue
-    "secondary_light": "#42A5F5",   # Lighter blue for hover states
+    # Secondary: Professional Gray/Blue-Gray - Represents trust, stability
+    "secondary": "#546E7A",         # Blue-gray (sophisticated)
+    "secondary_dark": "#37474F",    # Darker gray
+    "secondary_light": "#90A4AE",   # Lighter gray
     
-    # Accent: Orange - Represents energy, hope, positivity
-    "accent": "#F57C00",            # Warm orange/amber
-    "accent_light": "#FFB74D",      # Light orange for highlights
+    # Accent: Teal/Cyan - Represents healing, clarity, modern tech
+    "accent": "#26C6DA",            # Modern teal
+    "accent_light": "#80DEEA",      # Light teal for highlights
     
     # Neutrals - Background and text
-    "background": "#F5F5F5",        # Very light gray for sidebar
+    "background": "#F9F9F9",        # Almost white for sidebar
     "background_dark": "#FFFFFF",   # Pure white for content
     "border": "#E0E0E0",            # Light gray for borders
     
     # Text colors
-    "text_dark": "#333333",         # Dark gray for primary text
-    "text_light": "#666666",        # Medium gray for secondary text
-    "text_muted": "#999999",        # Light gray for tertiary text
+    "text_dark": "#263238",         # Very dark blue-gray for primary text
+    "text_light": "#607D8B",        # Medium gray for secondary text
+    "text_muted": "#90A4AE",        # Light gray for tertiary text
     
     # Status colors
-    "success": "#2E7D32",           # Green (same as primary)
-    "warning": "#F57C00",           # Orange (same as accent)
-    "danger": "#D32F2F",            # Red for errors/alerts
-    "info": "#1976D2",              # Blue (same as secondary)
+    "success": "#26A69A",           # Teal green
+    "warning": "#FFA726",           # Warm orange
+    "danger": "#EF5350",            # Red
+    "info": "#29B6F6",              # Light blue
 }
 
 # Theme configuration
@@ -124,22 +124,23 @@ def get_css_variables() -> str:
 
 # Pre-defined color combinations for quick use
 COLOR_SCHEMES = {
-    "therapeutic": {
+    "modern_purple": {
         "primary": COLORS["primary"],
         "secondary": COLORS["secondary"],
         "accent": COLORS["accent"],
-        "description": "Green + Blue + Orange - Calming and professional"
+        "description": "Purple + Gray + Teal - Modern and sophisticated"
     },
-    "clinical": {
-        "primary": COLORS["secondary"],
-        "secondary": COLORS["primary"],
-        "accent": COLORS["accent"],
-        "description": "Blue + Green + Orange - Professional and trustworthy"
-    },
-    "warm": {
+    "tech_forward": {
         "primary": COLORS["accent"],
         "secondary": COLORS["primary"],
         "accent": COLORS["secondary"],
-        "description": "Orange + Green + Blue - Warm and welcoming"
+        "description": "Teal + Purple + Gray - Tech-forward neuropsych"
+    },
+    "professional": {
+        "primary": COLORS["secondary"],
+        "secondary": COLORS["primary"],
+        "accent": COLORS["accent"],
+        "description": "Gray + Purple + Teal - Professional and elegant"
     },
 }
+
