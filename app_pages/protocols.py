@@ -9,7 +9,6 @@ from services.protocol_service import protocol_service
 from models import Protocol
 from utils.colors import COLORS
 from services.audit import audit_service
-from utils import modal_success, modal_warning
 
 
 def render():
@@ -395,11 +394,8 @@ def show_delete_confirmation_modal(protocol_name: str, protocol_id: str):
                 details={"name": protocol_name}
             )
             
-            # Show success modal
-            modal_success(
-                f"Protocolo '{protocol_name}' eliminado correctamente",
-                title="✅ Protocolo Eliminado"
-            )
+            # Show success toast notification
+            st.toast(f"✅ Protocolo '{protocol_name}' eliminado correctamente", icon="✅")
             
             # Clear session state and rerun
             st.session_state.show_delete_confirmation = False

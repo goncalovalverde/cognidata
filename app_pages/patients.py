@@ -8,7 +8,7 @@ from models import Patient
 from services.audit import audit_service
 from services.patient_protocol_service import patient_protocol_service
 from services.protocol_service import protocol_service
-from utils.alerts import modal_success, modal_error, modal_warning
+from utils.alerts import modal_error
 
 
 def render():
@@ -214,10 +214,7 @@ def _render_patient_protocols():
             
             if st.button("✅ Asignar Protocolo", use_container_width=True, type="primary"):
                 patient_protocol_service.assign_protocol(selected_patient_id, selected_protocol_id)
-                modal_success(
-                    "Protocolo asignado correctamente",
-                    title="✅ Protocolo Asignado"
-                )
+                st.success("✅ Protocolo asignado correctamente")
                 st.rerun()
         else:
             if assignments:
@@ -254,10 +251,7 @@ def show_unassign_protocol_modal(patient_id: str, protocol_id: str, protocol_nam
     with col1:
         if st.button("✅ Sí, desasignar", type="primary", use_container_width=True):
             patient_protocol_service.unassign_protocol(patient_id, protocol_id)
-            modal_success(
-                f"Protocolo '{protocol_name}' desasignado correctamente",
-                title="✅ Desasignación Completada"
-            )
+            st.toast(f"✅ Protocolo '{protocol_name}' desasignado correctamente", icon="✅")
             st.session_state.show_unassign_confirmation = False
             st.rerun()
     
