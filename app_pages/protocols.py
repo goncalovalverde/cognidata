@@ -44,6 +44,15 @@ def _render_view_protocols():
     """Render list of all protocols"""
     st.subheader("Protocolos Disponibles")
     
+    # Check if we just deleted a protocol and should show success modal
+    if st.session_state.get("show_delete_success_modal", False):
+        deleted_name = st.session_state.get("deleted_protocol_name", "Protocolo")
+        modal_success(
+            f"Protocolo '{deleted_name}' eliminado correctamente",
+            title="✅ Protocolo Eliminado"
+        )
+        st.session_state.show_delete_success_modal = False
+    
     # Get all protocols
     protocols = protocol_service.list_protocols()
     categories = protocol_service.list_categories()
@@ -101,7 +110,9 @@ def _render_view_protocols():
                         details={"name": protocol.name}
                     )
                     st.session_state[f"confirm_delete_{protocol.id}"] = False
-                    modal_success(f"Protocolo '{protocol.name}' eliminado correctamente", title="✅ Protocolo Eliminado")
+                    # Store deletion info for modal display on next render
+                    st.session_state.show_delete_success_modal = True
+                    st.session_state.deleted_protocol_name = protocol.name
                     st.rerun()
             with col2:
                 if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view"):
@@ -243,6 +254,16 @@ def _render_create_protocol():
 def _render_edit_protocol():
     """Render form to edit existing protocol"""
     st.subheader("Editar Protocolo")
+    
+    # Check if we just deleted a protocol and should show success modal
+    if st.session_state.get("show_delete_success_modal", False):
+        deleted_name = st.session_state.get("deleted_protocol_name", "Protocolo")
+        modal_success(
+            f"Protocolo '{deleted_name}' eliminado correctamente",
+            title="✅ Protocolo Eliminado"
+        )
+        st.session_state.show_delete_success_modal = False
+        return  # Exit after showing modal, user will need to reselect
     
     protocols = protocol_service.list_protocols()
     if not protocols:
@@ -410,7 +431,9 @@ def _confirm_delete_protocol(protocol: Protocol, context: str = "edit"):
             )
             
             st.session_state[session_key] = False
-            modal_success(f"Protocolo '{protocol.name}' eliminado correctamente", title="✅ Protocolo Eliminado")
+            # Store deletion info for modal display on next render
+            st.session_state.show_delete_success_modal = True
+            st.session_state.deleted_protocol_name = protocol.name
             st.rerun()
     
     with col2:
