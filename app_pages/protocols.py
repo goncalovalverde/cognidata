@@ -44,11 +44,11 @@ def _render_view_protocols():
     """Render list of all protocols"""
     st.subheader("Protocolos Disponibles")
     
-    # Check if we just deleted a protocol and should show success alert
+    # Check if we just deleted a protocol
     if st.session_state.get("show_delete_success_modal", False):
         deleted_name = st.session_state.get("deleted_protocol_name", "Protocolo")
-        # Debug: verify session state is working
-        st.write(f"DEBUG: Session state detected - deleted: {deleted_name}")
+        # Use st.success instead of modal to test if session state works
+        st.success(f"✅ Protocolo '{deleted_name}' eliminado correctamente")
         st.session_state.show_delete_success_modal = False
     
     # Get all protocols
@@ -253,13 +253,13 @@ def _render_edit_protocol():
     """Render form to edit existing protocol"""
     st.subheader("Editar Protocolo")
     
-    # Check if we just deleted a protocol and should show success alert
+    # Check if we just deleted a protocol
     if st.session_state.get("show_delete_success_modal", False):
         deleted_name = st.session_state.get("deleted_protocol_name", "Protocolo")
-        # Debug: verify session state is working
-        st.write(f"DEBUG: Session state detected - deleted: {deleted_name}")
+        # Use st.success instead of modal to test if session state works
+        st.success(f"✅ Protocolo '{deleted_name}' eliminado correctamente")
         st.session_state.show_delete_success_modal = False
-        return  # Exit after debug, user will need to reselect
+        return  # Exit, user will need to reselect
     
     protocols = protocol_service.list_protocols()
     if not protocols:
