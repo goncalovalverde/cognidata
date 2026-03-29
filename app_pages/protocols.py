@@ -105,11 +105,13 @@ def _render_view_protocols():
         if is_confirming:
             st.write(f"DEBUG CONFIRM: Showing confirmation dialog for {protocol.name}")
             st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}'")
-            col1, col2 = st.columns(2)
+            
+            st.write(f"DEBUG: About to render delete buttons for {protocol.name}")
+            col1, col2, col3 = st.columns([1, 1, 2])
             
             with col1:
-                st.write(f"DEBUG: About to render delete button for {protocol.name}")
-                if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_view_{i}", type="primary"):
+                st.write("DEBUG: In col1, about to render delete button")
+                if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_view_{i}", type="primary", use_container_width=True):
                     st.write("DEBUG 1: Delete button clicked")
                     protocol_service.delete_protocol(protocol.id)
                     st.write("DEBUG 2: Protocol deleted from DB")
@@ -127,9 +129,11 @@ def _render_view_protocols():
                     st.rerun()
             
             with col2:
-                if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view_{i}"):
+                st.write("DEBUG: In col2, about to render cancel button")
+                if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view_{i}", use_container_width=True):
                     st.session_state[confirm_key] = False
                     st.rerun()
+            
             continue
         
         with st.expander(f"🧪 **{protocol.name}** ({len(protocol.tests)} testes)", expanded=False):
