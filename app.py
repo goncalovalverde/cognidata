@@ -10,6 +10,7 @@ from streamlit_option_menu import option_menu
 
 from database.connection import init_db
 from utils.auth import require_auth, render_user_menu, init_auth_state
+from utils.colors import COLORS
 from app_pages import home, patients, tests, dashboard, config
 
 
@@ -29,40 +30,40 @@ def main():
     require_auth()
 
     with st.sidebar:
-        # Custom CSS para mejor apariencia
-        st.markdown("""
+        # Custom CSS con paleta profesional de clínica de psicología
+        st.markdown(f"""
         <style>
-        [data-testid="stSidebar"] {
-            background-color: #f8f9fa;
-        }
-        .sidebar-header {
+        [data-testid="stSidebar"] {{
+            background-color: {COLORS['background']};
+        }}
+        .sidebar-header {{
             text-align: center;
             padding: 20px 0;
-            border-bottom: 2px solid #1E90FF;
+            border-bottom: 3px solid {COLORS['primary']};
             margin-bottom: 20px;
-        }
-        .sidebar-header h2 {
+        }}
+        .sidebar-header h2 {{
             margin: 0;
-            color: #1E90FF;
+            color: {COLORS['primary']};
             font-size: 28px;
-        }
-        .sidebar-header p {
+        }}
+        .sidebar-header p {{
             margin: 5px 0 0 0;
-            color: #666;
+            color: {COLORS['text_light']};
             font-size: 12px;
-        }
+        }}
         </style>
         """, unsafe_allow_html=True)
         
-        # Logo y título profesional
-        st.markdown("""
+        # Logo y título
+        st.markdown(f"""
         <div class="sidebar-header">
             <h2>🧠 CogniData</h2>
             <p>Evaluación Neuropsicológica</p>
         </div>
         """, unsafe_allow_html=True)
         
-        # Menu de navegación moderno
+        # Menú de navegación con colores profesionales
         page = option_menu(
             menu_title="📋 Navegación",
             options=["Inicio", "Pacientes", "Tests", "Dashboard", "Configuración"],
@@ -72,10 +73,10 @@ def main():
             styles={
                 "container": {
                     "padding": "0!important",
-                    "background-color": "#f8f9fa",
+                    "background-color": COLORS['background'],
                 },
                 "icon": {
-                    "color": "#1E90FF",
+                    "color": COLORS['secondary'],
                     "font-size": "18px",
                 },
                 "nav-link": {
@@ -83,15 +84,16 @@ def main():
                     "text-align": "left",
                     "margin": "0px",
                     "padding": "12px 15px",
-                    "--hover-color": "#e6f2ff",
-                    "color": "#333333",
+                    "--hover-color": f"{COLORS['primary_light']}22",  # Verde claro transparente
+                    "color": COLORS['text_dark'],
                     "border-radius": "0px",
                 },
                 "nav-link-selected": {
-                    "background-color": "#1E90FF",
+                    "background-color": COLORS['primary'],
                     "color": "#ffffff",
                     "font-weight": "600",
                     "border-radius": "0px",
+                    "border-left": f"4px solid {COLORS['primary_dark']}",
                 },
             },
         )
@@ -99,14 +101,15 @@ def main():
         st.markdown("---")
         render_user_menu()
         
-        # Footer con información
-        st.markdown("""
-        <div style="font-size: 11px; color: #999; text-align: center; margin-top: 30px;">
+        # Footer
+        st.markdown(f"""
+        <div style="font-size: 11px; color: {COLORS['text_light']}; text-align: center; margin-top: 30px;">
             <p>v0.2.0 • Streamlit</p>
             <p>100% Python • SQLite</p>
         </div>
         """, unsafe_allow_html=True)
 
+    # Page routing
     if page == "Inicio":
         home.render()
     elif page == "Pacientes":
