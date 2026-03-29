@@ -6,17 +6,23 @@ import streamlit as st
 from database.connection import SessionLocal
 from models import Patient
 from services.audit import audit_service
+from services.patient_protocol_service import patient_protocol_service
+from services.protocol_service import protocol_service
+from utils.alerts import modal_success, modal_error, modal_warning
 
 
 def render():
     """Render the patients page"""
-    tab1, tab2 = st.tabs(["📋 Lista de Pacientes", "➕ Nuevo Paciente"])
+    tab1, tab2, tab3 = st.tabs(["📋 Lista de Pacientes", "➕ Nuevo Paciente", "📑 Protocolos"])
 
     with tab1:
         _render_patient_list()
 
     with tab2:
         _render_new_patient_form()
+    
+    with tab3:
+        _render_patient_protocols()
 
 
 def _render_patient_list():
@@ -113,3 +119,149 @@ def _render_new_patient_form():
 
             st.success(f"✅ Paciente creado con ID: {patient_id[:12]}...")
             st.balloons()
+
+
+def _render_patient_protocols():
+    """Render protocol assignment management for patients"""
+    st.subheader("Gestión de Protocolos por Paciente")
+    
+    db = SessionLocal()
+    try:
+        patients = db.query(Patient).order_by(Patient.created_at.desc()).all()
+        
+        if not patients:
+            st.info("No hay pacientes registrados")
+            return
+        
+        # Select patient
+        patient_options = {p.id: f"ID: {p.id[:8]}... ({p.age} años)" for p in patients}
+        selected_patient_id = st.selectbox(
+            "Selecciona un paciente",
+            list(patient_options.keys()),
+            format_func=lambda x: patient_options[x],
+            key="protocol_patient_select"
+        )
+        
+        if not selected_patient_id:
+            return
+        
+        selected_patient = next(p for p in patients if p.id == selected_patient_id)
+        
+        # Display patient info
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Edad", f"{selected_patient.age} años")
+        col2.metric("Escolaridad", f"{selected_patient.education_years} años")
+        col3.metric("Lateralidad", selected_patient.laterality.capitalize())
+        
+        st.markdown("---")
+        
+        # Get assigned protocols
+        assignments = patient_protocol_service.get_patient_protocols(selected_patient_id)
+        
+        if assignments:
+            st.subheader("📑 Protocolos Asignados")
+            
+            for assignment in assignments:
+                protocol = assignment.protocol
+                status = assignment.status
+                
+                # Get completion status
+                completion = patient_protocol_service.get_protocol_completion_status(
+                    selected_patient_id, protocol.id
+                )
+                
+                # Display protocol card
+                with st.expander(
+                    f"🧪 **{protocol.name}** - {status.upper()} ({completion['percentage']}%)",
+                    expanded=False
+                ):
+                    col1, col2 = st.columns([3, 1])
+                    
+                    with col1:
+                        st.markdown(f"**Descripción:** {protocol.description or '—'}")
+                        st.markdown(f"**Categoría:** {protocol.category or '—'}")
+                        st.markdown(f"**Testes:** {len(protocol.tests)}")
+                        st.markdown(f"**Completados:** {completion['completed_tests']}/{completion['total_tests']}")
+                        
+                        # Progress bar
+                        st.progress(completion['percentage'] / 100)
+                    
+                    with col2:
+                        if st.button("🗑️ Desasignar", key=f"unassign_{protocol.id}", use_container_width=True):
+                            st.session_state.show_unassign_confirmation = True
+                            st.session_state.unassign_protocol_id = protocol.id
+                            st.rerun()
+                
+                # Check if unassignment modal should be shown
+                if st.session_state.get("show_unassign_confirmation", False) and st.session_state.get("unassign_protocol_id") == protocol.id:
+                    show_unassign_protocol_modal(selected_patient_id, protocol.id, protocol.name)
+        
+        st.markdown("---")
+        
+        # Get available protocols
+        available = patient_protocol_service.get_available_protocols(selected_patient_id)
+        
+        if available:
+            st.subheader("➕ Asignar Nuevo Protocolo")
+            
+            protocol_options = {p.id: p.name for p in available}
+            selected_protocol_id = st.selectbox(
+                "Elige un protocolo",
+                list(protocol_options.keys()),
+                format_func=lambda x: protocol_options[x],
+                key="available_protocols"
+            )
+            
+            if st.button("✅ Asignar Protocolo", use_container_width=True, type="primary"):
+                patient_protocol_service.assign_protocol(selected_patient_id, selected_protocol_id)
+                modal_success(
+                    "Protocolo asignado correctamente",
+                    title="✅ Protocolo Asignado"
+                )
+                st.rerun()
+        else:
+            if assignments:
+                st.info("✅ Todos los protocolos disponibles ya están asignados a este paciente")
+            else:
+                st.warning("No hay protocolos disponibles. Crea uno en la pestaña 'Protocolos'")
+    
+    finally:
+        db.close()
+
+
+@st.dialog("⚠️ Confirmar Desasignación", width="large")
+def show_unassign_protocol_modal(patient_id: str, protocol_id: str, protocol_name: str):
+    """Show modal to confirm protocol unassignment"""
+    st.markdown(f"""
+    <div style='
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 16px;
+        border-radius: 6px;
+        color: #212121;
+        font-size: 16px;
+    '>
+        ¿Desea desasignar el protocolo "<b>{protocol_name}</b>"?
+        <br><br>
+        Los testes ya realizados permanecerán en el historial del paciente.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("✅ Sí, desasignar", type="primary", use_container_width=True):
+            patient_protocol_service.unassign_protocol(patient_id, protocol_id)
+            modal_success(
+                f"Protocolo '{protocol_name}' desasignado correctamente",
+                title="✅ Desasignación Completada"
+            )
+            st.session_state.show_unassign_confirmation = False
+            st.rerun()
+    
+    with col2:
+        if st.button("❌ Cancelar", use_container_width=True):
+            st.session_state.show_unassign_confirmation = False
+            st.rerun()
