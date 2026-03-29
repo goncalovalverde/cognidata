@@ -406,6 +406,130 @@ streamlit run test_modals.py
 
 ---
 
+## Confirmation Dialog Pattern (@st.dialog)
+
+For actions that require user confirmation (like deletion), use the `@st.dialog` decorator to create a modal dialog with action buttons. This is more flexible than simple alerts and allows capturing user decisions.
+
+### Creating a Confirmation Modal
+
+```python
+import streamlit as st
+from utils import modal_success
+
+@st.dialog("⚠️ Confirmar Eliminação", width="large")
+def confirm_delete_modal(item_name: str, item_id: str):
+    """Show a confirmation dialog for deleting an item"""
+    
+    # Display warning message with styling
+    st.markdown(f"""
+    <div style='
+        background-color: #ffebee;
+        border-left: 4px solid #ef5350;
+        padding: 16px;
+        border-radius: 6px;
+        color: #212121;
+        font-size: 16px;
+    '>
+        ¿Está seguro de que desea eliminar "<b>{item_name}</b>"?
+        <br><br>
+        Esta acción es <b>irreversible</b> y no se puede deshacer.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Action buttons
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("✅ Sí, eliminar", type="primary", use_container_width=True):
+            # Perform deletion
+            delete_service.delete_item(item_id)
+            
+            # Log audit trail
+            audit_service.log(
+                action="item.delete",
+                resource_id=item_id,
+                details={"name": item_name}
+            )
+            
+            # Show success modal
+            modal_success(
+                f"'{item_name}' ha sido eliminado correctamente",
+                title="✅ Eliminado"
+            )
+            
+            # Clean up and rerun
+            st.session_state.show_delete_confirmation = False
+            st.rerun()
+    
+    with col2:
+        if st.button("❌ Cancelar", use_container_width=True):
+            st.session_state.show_delete_confirmation = False
+            st.rerun()
+
+
+### Using the Confirmation Dialog
+
+In your main page code:
+
+```python
+# Step 1: Delete button triggers modal
+if st.button("🗑️ Delete Item"):
+    st.session_state.show_delete_confirmation = True
+    st.session_state.delete_item_id = item.id
+    st.rerun()
+
+# Step 2: Check and show modal on next render
+if st.session_state.get("show_delete_confirmation", False):
+    confirm_delete_modal(item.name, item.id)
+```
+
+### Key Points
+
+- **@st.dialog decorator**: Creates a modal overlay that blocks other UI interaction
+- **Session state**: Tracks when to show the modal (check on render, trigger delete button, rerun)
+- **Two-step flow**: Click delete → modal appears → user confirms/cancels
+- **Modal is called directly**: Unlike conditional rendering, `@st.dialog` functions are called directly when you want to show them
+- **Audit logging**: Always log destructive actions for compliance
+- **Success feedback**: Show success modal after deletion completes
+
+### Real Example (from CogniData)
+
+Protocol deletion in `app_pages/protocols.py`:
+
+```python
+@st.dialog("⚠️ Confirmar Eliminación", width="large")
+def show_delete_confirmation_modal(protocol_name: str, protocol_id: str):
+    """Show modal to confirm protocol deletion"""
+    st.markdown(f"""
+    <div style='background-color: #ffebee; border-left: 4px solid #ef5350; 
+                padding: 16px; border-radius: 6px; color: #212121; font-size: 16px;'>
+        ¿Está seguro de que desea eliminar el protocolo "<b>{protocol_name}</b>"?
+        <br><br>
+        Esta acción es <b>irreversible</b> y eliminará todas las pruebas asociadas.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("✅ Sí, eliminar", type="primary", use_container_width=True):
+            protocol_service.delete_protocol(protocol_id)
+            audit_service.log(action="protocol.delete", resource_id=protocol_id)
+            modal_success(f"Protocolo '{protocol_name}' eliminado", title="✅ Protocolo Eliminado")
+            st.session_state.show_delete_confirmation = False
+            st.rerun()
+    
+    with col2:
+        if st.button("❌ Cancelar", use_container_width=True):
+            st.session_state.show_delete_confirmation = False
+            st.rerun()
+```
+
+---
+
 ## Troubleshooting
 
 ### Modal not appearing?
