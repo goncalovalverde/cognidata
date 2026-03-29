@@ -107,10 +107,11 @@ def _render_view_protocols():
             st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}'")
             
             st.write(f"DEBUG: About to render delete buttons for {protocol.name}")
-            col1, col2, col3 = st.columns([1, 1, 2])
             
-            with col1:
-                st.write("DEBUG: In col1, about to render delete button")
+            # Render buttons without columns
+            btn_col1, btn_col2 = st.columns(2)
+            
+            with btn_col1:
                 if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_view_{i}", type="primary", use_container_width=True):
                     st.write("DEBUG 1: Delete button clicked")
                     protocol_service.delete_protocol(protocol.id)
@@ -128,9 +129,9 @@ def _render_view_protocols():
                     st.write(f"DEBUG 4: Session state set - show_delete={st.session_state.show_delete_success_modal}")
                     st.rerun()
             
-            with col2:
-                st.write("DEBUG: In col2, about to render cancel button")
+            with btn_col2:
                 if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view_{i}", use_container_width=True):
+                    st.write("DEBUG CANCEL: Cancel button clicked")
                     st.session_state[confirm_key] = False
                     st.rerun()
             
