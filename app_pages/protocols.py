@@ -86,6 +86,28 @@ def _render_view_protocols():
     # Display as expandable sections instead of table
     st.markdown("#### Protocolos:")
     for i, protocol in enumerate(filtered_protocols):
+        # Check if deletion is being confirmed for this protocol
+        if st.session_state.get(f"confirm_delete_{protocol.id}", False):
+            st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}'")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}", type="primary"):
+                    protocol_service.delete_protocol(protocol.id)
+                    audit_service.log(
+                        action="protocol.delete",
+                        resource_type="protocol",
+                        resource_id=protocol.id,
+                        details={"name": protocol.name}
+                    )
+                    st.session_state[f"confirm_delete_{protocol.id}"] = False
+                    st.success(f"✅ Protocolo '{protocol.name}' eliminado")
+                    st.rerun()
+            with col2:
+                if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}"):
+                    st.session_state[f"confirm_delete_{protocol.id}"] = False
+                    st.rerun()
+            continue
+        
         with st.expander(f"🧪 **{protocol.name}** ({len(protocol.tests)} testes)", expanded=False):
             col1, col2 = st.columns([3, 1])
             
@@ -114,8 +136,8 @@ def _render_view_protocols():
                 
                 with col_del:
                     if st.button("🗑️ Eliminar", key=f"del_{protocol.id}"):
-                        if _confirm_delete_protocol(protocol):
-                            st.rerun()
+                        st.session_state[f"confirm_delete_{protocol.id}"] = True
+                        st.rerun()
 
 
 def _render_create_protocol():
@@ -307,20 +329,11 @@ def _render_edit_protocol():
         
         st.markdown("---")
         
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            submitted = st.form_submit_button(
-                "💾 Guardar Cambios",
-                type="primary",
-                use_container_width=True
-            )
-        
-        with col2:
-            deleted = st.form_submit_button(
-                "🗑️ Eliminar Protocolo",
-                use_container_width=True
-            )
+        submitted = st.form_submit_button(
+            "💾 Guardar Cambios",
+            type="primary",
+            use_container_width=True
+        )
         
         if submitted:
             if not name:
@@ -351,40 +364,50 @@ def _render_edit_protocol():
                 
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
-        
-        if deleted:
-            if _confirm_delete_protocol(protocol):
-                st.rerun()
+    
+    # Delete button OUTSIDE of form
+    st.markdown("---")
+    st.markdown("**Zona de Peligro:**")
+    
+    if st.button("🗑️ Eliminar Protocolo", type="secondary", use_container_width=True):
+        _confirm_delete_protocol(protocol)
 
 
-def _confirm_delete_protocol(protocol: Protocol) -> bool:
-    """Confirm deletion of protocol"""
-    if st.session_state.get(f"confirm_delete_{protocol.id}"):
+def _confirm_delete_protocol(protocol: Protocol):
+    """Confirm and delete a protocol"""
+    session_key = f"confirm_delete_{protocol.id}"
+    
+    # Check if we're in confirmation state
+    if not st.session_state.get(session_key, False):
+        # First click - show confirmation
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("✅ Confirmar eliminación", key=f"confirm_yes_{protocol.id}"):
-                protocol_service.delete_protocol(protocol.id)
-                
-                audit_service.log(
-                    action="protocol.delete",
-                    resource_type="protocol",
-                    resource_id=protocol.id,
-                    details={"name": protocol.name}
-                )
-                
-                st.success(f"✅ Protocolo '{protocol.name}' eliminado")
-                st.session_state[f"confirm_delete_{protocol.id}"] = False
-                return True
-        
-        with col2:
-            if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}"):
-                st.session_state[f"confirm_delete_{protocol.id}"] = False
+            if st.button("⚠️ ¿Está seguro?", key=f"confirm_ask_{protocol.id}", type="primary"):
+                st.session_state[session_key] = True
                 st.rerun()
-        
-        return False
+        return
     
-    if st.button(f"⚠️ ¿Eliminar '{protocol.name}'?", key=f"delete_confirm_{protocol.id}"):
-        st.session_state[f"confirm_delete_{protocol.id}"] = True
-        st.rerun()
+    # Second click - show confirmation dialog
+    st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}' y todas sus asociaciones.")
     
-    return False
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}", type="primary"):
+            protocol_service.delete_protocol(protocol.id)
+            
+            audit_service.log(
+                action="protocol.delete",
+                resource_type="protocol",
+                resource_id=protocol.id,
+                details={"name": protocol.name}
+            )
+            
+            st.session_state[session_key] = False
+            st.success(f"✅ Protocolo '{protocol.name}' eliminado")
+            st.rerun()
+    
+    with col2:
+        if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}"):
+            st.session_state[session_key] = False
+            st.rerun()
