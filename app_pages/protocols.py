@@ -9,6 +9,7 @@ from services.protocol_service import protocol_service
 from models import Protocol
 from utils.colors import COLORS
 from services.audit import audit_service
+from utils import modal_success, modal_warning
 
 
 def render():
@@ -100,7 +101,7 @@ def _render_view_protocols():
                         details={"name": protocol.name}
                     )
                     st.session_state[f"confirm_delete_{protocol.id}"] = False
-                    st.success(f"✅ Protocolo '{protocol.name}' eliminado")
+                    modal_success(f"Protocolo '{protocol.name}' eliminado correctamente", title="✅ Protocolo Eliminado")
                     st.rerun()
             with col2:
                 if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}"):
@@ -404,7 +405,7 @@ def _confirm_delete_protocol(protocol: Protocol):
             )
             
             st.session_state[session_key] = False
-            st.success(f"✅ Protocolo '{protocol.name}' eliminado")
+            modal_success(f"Protocolo '{protocol.name}' eliminado correctamente", title="✅ Protocolo Eliminado")
             st.rerun()
     
     with col2:
