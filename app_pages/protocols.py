@@ -191,6 +191,8 @@ def _render_create_protocol():
                 st.error("❌ El nombre del protocolo es obligatorio")
             elif not selected_tests:
                 st.error("❌ Debes seleccionar al menos un teste")
+            elif protocol_service.get_protocol_by_name(name):
+                st.error(f"❌ Ya existe un protocolo con el nombre '{name}'. Elige otro nombre")
             else:
                 try:
                     protocol = protocol_service.create_protocol(
@@ -325,6 +327,8 @@ def _render_edit_protocol():
                 st.error("❌ El nombre es obligatorio")
             elif not selected_tests:
                 st.error("❌ Debes tener al menos un teste")
+            elif name != protocol.name and protocol_service.get_protocol_by_name(name):
+                st.error(f"❌ Ya existe un protocolo con el nombre '{name}'. Elige otro nombre")
             else:
                 try:
                     updated = protocol_service.update_protocol(
