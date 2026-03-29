@@ -1,5 +1,6 @@
 # Streamlit UI
 streamlit>=1.31.0
+streamlit-option-menu>=0.3.2
 
 # Base de datos
 sqlalchemy>=2.0.25
