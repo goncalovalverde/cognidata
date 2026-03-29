@@ -29,11 +29,36 @@ def main():
     require_auth()
 
     with st.sidebar:
-        # Logo y título
+        # Custom CSS para mejor apariencia
         st.markdown("""
-        <div style="text-align: center; margin-bottom: 20px;">
+        <style>
+        [data-testid="stSidebar"] {
+            background-color: #f8f9fa;
+        }
+        .sidebar-header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #1E90FF;
+            margin-bottom: 20px;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            color: #1E90FF;
+            font-size: 28px;
+        }
+        .sidebar-header p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 12px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Logo y título profesional
+        st.markdown("""
+        <div class="sidebar-header">
             <h2>🧠 CogniData</h2>
-            <p style="font-size: 12px; color: #666;">Sistema Neuropsicológico</p>
+            <p>Evaluación Neuropsicológica</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -45,8 +70,14 @@ def main():
             menu_icon="list",
             default_index=0,
             styles={
-                "container": {"padding": "0!important", "background-color": "#f8f9fa"},
-                "icon": {"color": "#1E90FF", "font-size": "18px"},
+                "container": {
+                    "padding": "0!important",
+                    "background-color": "#f8f9fa",
+                },
+                "icon": {
+                    "color": "#1E90FF",
+                    "font-size": "18px",
+                },
                 "nav-link": {
                     "font-size": "15px",
                     "text-align": "left",
@@ -54,19 +85,27 @@ def main():
                     "padding": "12px 15px",
                     "--hover-color": "#e6f2ff",
                     "color": "#333333",
+                    "border-radius": "0px",
                 },
                 "nav-link-selected": {
                     "background-color": "#1E90FF",
                     "color": "#ffffff",
                     "font-weight": "600",
+                    "border-radius": "0px",
                 },
             },
         )
 
         st.markdown("---")
         render_user_menu()
-        st.caption("Versión 0.2.0 - Streamlit")
-        st.caption("100% Python - SQLite")
+        
+        # Footer con información
+        st.markdown("""
+        <div style="font-size: 11px; color: #999; text-align: center; margin-top: 30px;">
+            <p>v0.2.0 • Streamlit</p>
+            <p>100% Python • SQLite</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     if page == "Inicio":
         home.render()
