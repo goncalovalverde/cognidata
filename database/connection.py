@@ -28,6 +28,6 @@ def get_db():
 
 def init_db():
     """Inicializar todas las tablas"""
-    from models import patient, test_session, audit_log, user
+    from models import patient, test_session, audit_log, user, protocol
 
     Base.metadata.create_all(bind=engine)

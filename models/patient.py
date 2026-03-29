@@ -19,6 +19,11 @@ class Patient(Base):
     encrypted_metadata = Column(String, nullable=True)
     
     sessions = relationship("TestSession", back_populates="patient", cascade="all, delete-orphan")
+    protocol_assignments = relationship("PatientProtocol", back_populates="patient", cascade="all, delete-orphan")
+    
+    def get_protocols(self):
+        """Get all protocols assigned to this patient"""
+        return [assignment.protocol for assignment in self.protocol_assignments]
     
     def __repr__(self):
         return f"<Patient {self.id[:8]}... {self.age}años, {self.education_years} años escolaridad>"
