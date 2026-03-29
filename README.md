@@ -99,7 +99,25 @@ streamlit run app.py
 
 - **README.md** (este archivo) - Visión general
 - **[USAGE.md](USAGE.md)** - Manual detallado de usuario
+- **[IMPLEMENTATION.md](IMPLEMENTATION.md)** - Detalles técnicos de implementación
+- **[MODAL_ALERTS.md](MODAL_ALERTS.md)** - Sistema de notificaciones modales
 - **[Plan técnico](~/.copilot/session-state/.../plan.md)** - Arquitectura y roadmap
+
+### 🔔 Sistema de Notificaciones Modales
+
+CogniData utiliza un **sistema profesional de notificaciones modales** para todas las alertas de usuario. 
+
+**Uso rápido**:
+```python
+from utils import modal_success, modal_error, modal_warning, modal_info
+
+modal_success("¡Éxito!", title="✅ Operación Exitosa")
+modal_error("Error al guardar", title="❌ Error")
+modal_warning("Esta acción es irreversible", title="⚠️ Advertencia")
+modal_info("Procesando...", title="ℹ️ Por favor espere")
+```
+
+📖 **[Documentación completa](MODAL_ALERTS.md)** - Incluye patrones de uso, ejemplos, y guía de migración.
 
 ---
 
