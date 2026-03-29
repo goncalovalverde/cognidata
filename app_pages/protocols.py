@@ -92,7 +92,7 @@ def _render_view_protocols():
             st.warning(f"⚠️ Va a eliminar el protocolo '{protocol.name}'")
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}", type="primary"):
+                if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_view", type="primary"):
                     protocol_service.delete_protocol(protocol.id)
                     audit_service.log(
                         action="protocol.delete",
@@ -104,7 +104,7 @@ def _render_view_protocols():
                     modal_success(f"Protocolo '{protocol.name}' eliminado correctamente", title="✅ Protocolo Eliminado")
                     st.rerun()
             with col2:
-                if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}"):
+                if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_view"):
                     st.session_state[f"confirm_delete_{protocol.id}"] = False
                     st.rerun()
             continue
@@ -371,11 +371,16 @@ def _render_edit_protocol():
     st.markdown("**Zona de Peligro:**")
     
     if st.button("🗑️ Eliminar Protocolo", type="secondary", use_container_width=True):
-        _confirm_delete_protocol(protocol)
+        _confirm_delete_protocol(protocol, context="edit")
 
 
-def _confirm_delete_protocol(protocol: Protocol):
-    """Confirm and delete a protocol"""
+def _confirm_delete_protocol(protocol: Protocol, context: str = "edit"):
+    """Confirm and delete a protocol
+    
+    Args:
+        protocol: The protocol to delete
+        context: Either "view" or "edit" to ensure unique button keys
+    """
     session_key = f"confirm_delete_{protocol.id}"
     
     # Check if we're in confirmation state
@@ -383,7 +388,7 @@ def _confirm_delete_protocol(protocol: Protocol):
         # First click - show confirmation
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("⚠️ ¿Está seguro?", key=f"confirm_ask_{protocol.id}", type="primary"):
+            if st.button("⚠️ ¿Está seguro?", key=f"confirm_ask_{protocol.id}_{context}", type="primary"):
                 st.session_state[session_key] = True
                 st.rerun()
         return
@@ -394,7 +399,7 @@ def _confirm_delete_protocol(protocol: Protocol):
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}", type="primary"):
+        if st.button("✅ Sí, eliminar", key=f"confirm_yes_{protocol.id}_{context}", type="primary"):
             protocol_service.delete_protocol(protocol.id)
             
             audit_service.log(
@@ -409,6 +414,6 @@ def _confirm_delete_protocol(protocol: Protocol):
             st.rerun()
     
     with col2:
-        if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}"):
+        if st.button("❌ Cancelar", key=f"confirm_no_{protocol.id}_{context}"):
             st.session_state[session_key] = False
             st.rerun()
