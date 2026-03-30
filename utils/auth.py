@@ -1,6 +1,6 @@
 """
 Authentication module for CogniData
-Provides session-based authentication and role-based access control
+Provides session-based authentication, role-based access control, and JWT-based session persistence
 """
 
 import streamlit as st
@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from services.audit import audit_service
+from utils.jwt_manager import JWTManager
+from utils.cookie_manager import AuthCookieManager
 
 
 @dataclass
@@ -166,6 +168,38 @@ def require_auth():
         st.stop()
 
 
+def require_auth_with_persistence():
+    """
+    Require authentication with session persistence via JWT cookies.
+    
+    Checks authentication in this order:
+    1. st.session_state.authenticated (in-memory session from current run)
+    2. JWT cookie (session from previous page reload)
+    3. Shows login form if neither exists
+    
+    This allows users to stay logged in across page reloads.
+    """
+    init_auth_state()
+    
+    # Already authenticated in memory
+    if st.session_state.authenticated:
+        return
+    
+    # Try to recover session from JWT cookie
+    token = AuthCookieManager.get_auth_cookie()
+    if token:
+        user = JWTManager.validate_token(token)
+        if user:
+            # Token is valid - restore session
+            st.session_state.user = user
+            st.session_state.authenticated = True
+            return
+    
+    # No valid session - show login form
+    _render_login_form()
+    st.stop()
+
+
 def require_role(required_role: str):
     """
     Guard to require a specific role.
@@ -192,6 +226,11 @@ def login(username: str, password: str) -> bool:
         st.session_state.user = user
         st.session_state.authenticated = True
         st.session_state.login_attempts = 0
+        
+        # NEW: Generate JWT token and store in cookie
+        token = JWTManager.generate_token(user)
+        AuthCookieManager.set_auth_cookie(token)
+        
         audit_service.log(
             action="auth.login",
             resource_type="system",
@@ -204,7 +243,7 @@ def login(username: str, password: str) -> bool:
 
 
 def logout():
-    """Log out the current user"""
+    """Log out the current user and clear session cookie"""
     if st.session_state.get("user"):
         audit_service.log(
             action="auth.logout",
@@ -214,6 +253,9 @@ def logout():
 
     st.session_state.user = None
     st.session_state.authenticated = False
+    
+    # NEW: Clear authentication cookie
+    AuthCookieManager.clear_auth_cookie()
 
 
 def get_current_user() -> Optional[User]:

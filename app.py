@@ -9,7 +9,7 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 
 from database.connection import init_db
-from utils.auth import require_auth, render_user_menu, init_auth_state
+from utils.auth import require_auth_with_persistence, render_user_menu, init_auth_state
 from utils.colors import COLORS
 from app_pages import home, patients, tests, dashboard, config, protocols
 
@@ -27,7 +27,7 @@ init_auth_state()
 
 def main():
     """Main application entry point"""
-    require_auth()
+    require_auth_with_persistence()  # NEW: With session persistence via JWT cookies
 
     with st.sidebar:
         # Custom CSS con paleta profesional de clínica de psicología
