@@ -61,11 +61,16 @@ class PatientProtocolService:
         Returns:
             List of PatientProtocol assignments with protocol details
         """
+        from sqlalchemy.orm import joinedload
+        
         db = SessionLocal()
         try:
             assignments = db.query(PatientProtocol).filter(
                 PatientProtocol.patient_id == patient_id
-            ).all()
+            ).options(joinedload(PatientProtocol.protocol)).all()
+            
+            # Detach from session but ensure protocol is loaded
+            db.expunge_all()
             return assignments
         finally:
             db.close()
@@ -219,11 +224,16 @@ class PatientProtocolService:
         Returns:
             List of PatientProtocol assignments for this protocol
         """
+        from sqlalchemy.orm import joinedload
+        
         db = SessionLocal()
         try:
             assignments = db.query(PatientProtocol).filter(
                 PatientProtocol.protocol_id == protocol_id
-            ).all()
+            ).options(joinedload(PatientProtocol.patient)).all()
+            
+            # Detach from session but ensure relationships are loaded
+            db.expunge_all()
             return assignments
         finally:
             db.close()
