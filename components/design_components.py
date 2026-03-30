@@ -288,8 +288,7 @@ def alert(
     
     style = colors.get(alert_type, colors["info"])
     
-    st.markdown(f"""
-    <div style="
+    st.markdown(f"""<div style="
         background-color: {style['bg']};
         border-left: 4px solid {style['border']};
         padding: 1rem 1.25rem;
@@ -312,8 +311,7 @@ def alert(
                 <p style="font-size: 0.95rem; line-height: 1.5; margin: 0;">{message}</p>
             </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+    </div>""", unsafe_allow_html=True)
 
 
 def section_divider(title: str = ""):
