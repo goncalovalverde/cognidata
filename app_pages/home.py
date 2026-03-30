@@ -27,9 +27,9 @@ def render():
     st.markdown("---")
 
     st.subheader("✅ Estado del Sistema")
-    alert("Base de datos SQLite conectada", type="success")
-    alert("Modelos inicializados", type="success")
-    alert("Motor de cálculo normativo operativo", type="success")
+    alert("Base de datos SQLite conectada", alert_type="success")
+    alert("Modelos inicializados", alert_type="success")
+    alert("Motor de cálculo normativo operativo", alert_type="success")
 
     st.markdown("---")
 

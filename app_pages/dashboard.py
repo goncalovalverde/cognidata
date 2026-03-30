@@ -103,7 +103,7 @@ def _render_protocol_statistics():
         protocols = db.query(Protocol).all()
         
         if not protocols:
-            alert("No hay protocolos definidos. Crea uno en la sección 'Protocolos'", type="info")
+            alert("No hay protocolos definidos. Crea uno en la sección 'Protocolos'", alert_type="info")
             return
         
         # Protocol usage statistics
@@ -398,13 +398,13 @@ def _render_interpretation():
     with col1:
         st.metric("Media de Puntuación Escalar", f"{mean_pe:.1f}")
         if mean_pe >= 13:
-            alert("Rendimiento global superior a la media", type="success")
+            alert("Rendimiento global superior a la media", alert_type="success")
         elif mean_pe >= 7:
-            alert("Rendimiento global dentro de la normalidad", type="info")
+            alert("Rendimiento global dentro de la normalidad", alert_type="info")
         elif mean_pe >= 4:
-            alert("Rendimiento global en rango limítrofe", type="warning")
+            alert("Rendimiento global en rango limítrofe", alert_type="warning")
         else:
-            alert("Rendimiento global por debajo de lo esperado", type="error")
+            alert("Rendimiento global por debajo de lo esperado", alert_type="error")
 
     with col2:
         st.metric("Media de Percentil", f"{mean_percentil:.1f}%")
@@ -444,7 +444,7 @@ def _render_export_section(patient_data: dict, sessions_data: list):
                 with open(pdf_path, "rb") as pdf_file:
                     pdf_bytes = pdf_file.read()
 
-                alert("Informe generado exitosamente", type="success")
+                alert("Informe generado exitosamente", alert_type="success")
                 st.download_button(
                     label="⬇️ Descargar PDF",
                     data=pdf_bytes,
@@ -453,4 +453,4 @@ def _render_export_section(patient_data: dict, sessions_data: list):
                 )
 
             except Exception as e:
-                alert(f"Error al generar PDF: {str(e)}", type="error")
+                alert(f"Error al generar PDF: {str(e)}", alert_type="error")

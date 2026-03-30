@@ -104,7 +104,7 @@ def _render_new_patient_form():
                 },
             )
 
-            alert(f"Paciente creado con ID: {patient_id[:12]}...", type="success")
+            alert(f"Paciente creado con ID: {patient_id[:12]}...", alert_type="success")
             st.balloons()
 
 
@@ -117,7 +117,7 @@ def _render_patient_protocols():
         patients = db.query(Patient).order_by(Patient.created_at.desc()).all()
         
         if not patients:
-            alert("No hay pacientes registrados", type="info")
+            alert("No hay pacientes registrados", alert_type="info")
             return
         
         # Select patient
@@ -201,13 +201,13 @@ def _render_patient_protocols():
             
             if st.button("✅ Asignar Protocolo", use_container_width=True, type="primary"):
                 patient_protocol_service.assign_protocol(selected_patient_id, selected_protocol_id)
-                alert("Protocolo asignado correctamente", type="success")
+                alert("Protocolo asignado correctamente", alert_type="success")
                 st.rerun()
         else:
             if assignments:
-                alert("Todos los protocolos disponibles ya están asignados a este paciente", type="info")
+                alert("Todos los protocolos disponibles ya están asignados a este paciente", alert_type="info")
             else:
-                alert("No hay protocolos disponibles. Crea uno en la pestaña 'Protocolos'", type="warning")
+                alert("No hay protocolos disponibles. Crea uno en la pestaña 'Protocolos'", alert_type="warning")
     
     finally:
         db.close()

@@ -48,7 +48,7 @@ def _render_view_protocols():
     categories = protocol_service.list_categories()
     
     if not protocols:
-        alert("No hay protocolos definidos aún. Crea uno en la pestaña '➕ Crear Protocolo'", type="info")
+        alert("No hay protocolos definidos aún. Crea uno en la pestaña '➕ Crear Protocolo'", alert_type="info")
         return
     
     # Filter by category
@@ -194,11 +194,11 @@ def _render_create_protocol():
         
         if submitted:
             if not name:
-                alert("El nombre del protocolo es obligatorio", type="error")
+                alert("El nombre del protocolo es obligatorio", alert_type="error")
             elif not selected_tests:
-                alert("Debes seleccionar al menos un teste", type="error")
+                alert("Debes seleccionar al menos un teste", alert_type="error")
             elif protocol_service.get_protocol_by_name(name):
-                alert(f"Ya existe un protocolo con el nombre '{name}'. Elige otro nombre", type="error")
+                alert(f"Ya existe un protocolo con el nombre '{name}'. Elige otro nombre", alert_type="error")
             else:
                 try:
                     protocol = protocol_service.create_protocol(
@@ -215,12 +215,12 @@ def _render_create_protocol():
                         details={"name": name, "test_count": len(selected_tests)}
                     )
                     
-                    alert(f"Protocolo '{name}' creado con éxito", type="success")
+                    alert(f"Protocolo '{name}' creado con éxito", alert_type="success")
                     st.balloons()
                     st.rerun()
                 
                 except Exception as e:
-                    alert(f"Error al crear protocolo: {str(e)}", type="error")
+                    alert(f"Error al crear protocolo: {str(e)}", alert_type="error")
 
 
 def _render_edit_protocol():
@@ -229,7 +229,7 @@ def _render_edit_protocol():
     
     protocols = protocol_service.list_protocols()
     if not protocols:
-        alert("No hay protocolos para editar", type="info")
+        alert("No hay protocolos para editar", alert_type="info")
         return
     
     # Select protocol to edit
@@ -247,7 +247,7 @@ def _render_edit_protocol():
     protocol = protocol_service.get_protocol(protocol_id)
     
     if not protocol:
-        alert("Protocolo no encontrado", type="error")
+        alert("Protocolo no encontrado", alert_type="error")
         return
     
     # Display current protocol info
@@ -321,11 +321,11 @@ def _render_edit_protocol():
         
         if submitted:
             if not name:
-                alert("El nombre es obligatorio", type="error")
+                alert("El nombre es obligatorio", alert_type="error")
             elif not selected_tests:
-                alert("Debes tener al menos un teste", type="error")
+                alert("Debes tener al menos un teste", alert_type="error")
             elif name != protocol.name and protocol_service.get_protocol_by_name(name):
-                alert(f"Ya existe un protocolo con el nombre '{name}'. Elige otro nombre", type="error")
+                alert(f"Ya existe un protocolo con el nombre '{name}'. Elige otro nombre", alert_type="error")
             else:
                 try:
                     updated = protocol_service.update_protocol(
@@ -343,11 +343,11 @@ def _render_edit_protocol():
                         details={"name": name}
                     )
                     
-                    alert("Protocolo actualizado", type="success")
+                    alert("Protocolo actualizado", alert_type="success")
                     st.rerun()
                 
                 except Exception as e:
-                    alert(f"Error: {str(e)}", type="error")
+                    alert(f"Error: {str(e)}", alert_type="error")
     
     # Delete button OUTSIDE of form
     st.markdown("---")
