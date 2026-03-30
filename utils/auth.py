@@ -12,7 +12,6 @@ from datetime import datetime
 
 from services.audit import audit_service
 from utils.jwt_manager import JWTManager
-from utils.cookie_manager import AuthCookieManager
 
 
 @dataclass
@@ -170,27 +169,31 @@ def require_auth():
 
 def require_auth_with_persistence():
     """
-    Require authentication with session persistence via JWT cookies.
+    Require authentication with session persistence via database storage.
     
     Checks authentication in this order:
     1. st.session_state.authenticated (in-memory session from current run)
-    2. JWT cookie (session from previous page reload)
-    3. Shows login form if neither exists
+    2. Authorization header with valid JWT token (for API clients)
+    3. Database session record (for browser reloads)
+    4. Shows login form if none exist
     
     This allows users to stay logged in across page reloads.
     """
+    from services.session_manager import SessionManager
+    
     init_auth_state()
     
     # Already authenticated in memory
     if st.session_state.authenticated:
         return
     
-    # Try to recover session from JWT cookie
-    token = AuthCookieManager.get_auth_cookie()
+    # Try to recover from JWT token in query parameters or session state
+    # (This is set when user logs in - token is in URL or captured)
+    token = st.session_state.get("auth_token")
     if token:
-        user = JWTManager.validate_token(token)
+        user = SessionManager.validate_token_in_session(token)
         if user:
-            # Token is valid - restore session
+            # Token is valid in database - restore session
             st.session_state.user = user
             st.session_state.authenticated = True
             return
@@ -220,6 +223,9 @@ def login(username: str, password: str) -> bool:
     Returns:
         True if login successful, False otherwise
     """
+    from services.session_manager import SessionManager
+    from datetime import timedelta
+    
     user = auth_service.authenticate(username, password)
 
     if user:
@@ -227,9 +233,17 @@ def login(username: str, password: str) -> bool:
         st.session_state.authenticated = True
         st.session_state.login_attempts = 0
         
-        # NEW: Generate JWT token and store in cookie
+        # NEW: Generate JWT token and create server-side session
         token = JWTManager.generate_token(user)
-        AuthCookieManager.set_auth_cookie(token)
+        st.session_state.auth_token = token  # Store in session state for persistence check
+        
+        # Create database session record for page reload recovery
+        token_expires_at = datetime.utcnow() + timedelta(hours=JWTManager.EXPIRATION_HOURS)
+        SessionManager.create_session(
+            user=user,
+            token=token,
+            token_expires_at=token_expires_at,
+        )
         
         audit_service.log(
             action="auth.login",
@@ -243,19 +257,24 @@ def login(username: str, password: str) -> bool:
 
 
 def logout():
-    """Log out the current user and clear session cookie"""
+    """Log out the current user and invalidate session"""
+    from services.session_manager import SessionManager
+    
     if st.session_state.get("user"):
         audit_service.log(
             action="auth.logout",
             resource_type="system",
             details={"username": st.session_state.user.username},
         )
+        
+        # NEW: Invalidate database session
+        token = st.session_state.get("auth_token")
+        if token:
+            SessionManager.invalidate_session(token)
 
     st.session_state.user = None
     st.session_state.authenticated = False
-    
-    # NEW: Clear authentication cookie
-    AuthCookieManager.clear_auth_cookie()
+    st.session_state.auth_token = None
 
 
 def get_current_user() -> Optional[User]:

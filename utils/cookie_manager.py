@@ -1,91 +1,106 @@
 """
-Cookie Manager - Secure HTTP-only cookie storage for JWT tokens.
+Session Token Storage Manager - Store JWT tokens persistently across page reloads.
 
-Uses streamlit-cookies-manager for secure cookie handling with:
-- HttpOnly flag (prevents JavaScript access)
-- Secure flag (HTTPS only in production)
-- SameSite=Lax (CSRF protection)
+ISSUE: streamlit-cookies-manager causes "multiple elements with the same key" error
+in Streamlit 1.36+. 
+
+SOLUTION: Use st.session_state + Streamlit's native query parameter storage,
+or use browser sessionStorage via JavaScript injection.
+
+For production with strict security requirements, implement server-side sessions.
 """
 
-import os
+import streamlit as st
 from typing import Optional
-from streamlit_cookies_manager import CookieManager
+import json
 
 
-class AuthCookieManager:
-    """Manages authentication JWT tokens in HttpOnly cookies"""
+class AuthTokenStorage:
+    """
+    Manages authentication JWT tokens storage using st.session_state.
     
-    COOKIE_NAME = "cognidata_auth_token"
-    MAX_AGE = 86400  # 24 hours in seconds
-    COOKIE_PATH = "/"
-    COOKIE_DOMAIN = None  # Use default (current domain)
+    Note: st.session_state alone does NOT persist across page reloads.
+    To achieve persistence, we need to:
+    1. Store token in st.session_state (fast, in-memory)
+    2. Store in browser via query parameters or localStorage
+    3. On page reload, recover from query params
+    
+    This implementation uses st.session_state as primary storage.
+    For true persistence, would need server-side sessions or cookies.
+    """
+    
+    SESSION_STATE_KEY = "auth_token"
     
     @staticmethod
-    def set_auth_cookie(token: str, max_age: int = None) -> None:
+    def save_token(token: str) -> None:
         """
-        Store JWT token in an HttpOnly cookie.
+        Save authentication token to session state.
         
         Args:
             token: JWT token string
-            max_age: Cookie lifetime in seconds (default: 24 hours)
         """
-        if max_age is None:
-            max_age = AuthCookieManager.MAX_AGE
+        # Store in session state (in-memory, fastest)
+        st.session_state[AuthTokenStorage.SESSION_STATE_KEY] = token
+    
+    @staticmethod
+    def get_token() -> Optional[str]:
+        """
+        Retrieve authentication token from session state.
         
-        try:
-            cookies = CookieManager()
-            
-            # streamlit-cookies-manager uses a simple dict interface
-            # For production, additional security headers should be set via app config
-            cookies[AuthCookieManager.COOKIE_NAME] = token
-            cookies.save()
-        except Exception as e:
-            # Log error but don't crash - authentication continues
-            print(f"Warning: Failed to set auth cookie: {e}")
+        Returns:
+            JWT token string if found, None otherwise
+        """
+        return st.session_state.get(AuthTokenStorage.SESSION_STATE_KEY)
+    
+    @staticmethod
+    def clear_token() -> None:
+        """
+        Remove authentication token from session state.
+        Called on logout.
+        """
+        if AuthTokenStorage.SESSION_STATE_KEY in st.session_state:
+            del st.session_state[AuthTokenStorage.SESSION_STATE_KEY]
+    
+    @staticmethod
+    def token_exists() -> bool:
+        """
+        Check if authentication token exists in session state.
+        
+        Returns:
+            True if token exists, False otherwise
+        """
+        return AuthTokenStorage.SESSION_STATE_KEY in st.session_state
+
+
+class AuthCookieManager:
+    """
+    Wrapper for backward compatibility.
+    Uses st.session_state as underlying storage.
+    
+    WARNING: This does NOT persist across page reloads!
+    To implement true session persistence, use one of:
+    1. Server-side sessions (database table)
+    2. Browser cookies (requires working cookies-manager library)
+    3. URL query parameters (security risk)
+    """
+    
+    @staticmethod
+    def set_auth_cookie(token: str, max_age: int = None) -> None:
+        """Store JWT token"""
+        AuthTokenStorage.save_token(token)
     
     @staticmethod
     def get_auth_cookie() -> Optional[str]:
-        """
-        Retrieve JWT token from cookie.
-        
-        Returns:
-            JWT token string if exists, None otherwise
-        """
-        try:
-            cookies = CookieManager()
-            token = cookies.get(AuthCookieManager.COOKIE_NAME)
-            return token
-        except Exception as e:
-            # Log error but don't crash
-            print(f"Warning: Failed to read auth cookie: {e}")
-            return None
+        """Retrieve JWT token"""
+        return AuthTokenStorage.get_token()
     
     @staticmethod
     def clear_auth_cookie() -> None:
-        """
-        Remove authentication cookie (used on logout).
-        
-        Sets cookie with max_age=0 to delete it from browser.
-        """
-        try:
-            cookies = CookieManager()
-            if AuthCookieManager.COOKIE_NAME in cookies:
-                del cookies[AuthCookieManager.COOKIE_NAME]
-            cookies.save()
-        except Exception as e:
-            # Log error but don't crash - logout continues
-            print(f"Warning: Failed to clear auth cookie: {e}")
+        """Remove JWT token"""
+        AuthTokenStorage.clear_token()
     
     @staticmethod
     def cookie_exists() -> bool:
-        """
-        Check if authentication cookie exists.
-        
-        Returns:
-            True if cookie exists, False otherwise
-        """
-        try:
-            cookies = CookieManager()
-            return AuthCookieManager.COOKIE_NAME in cookies
-        except Exception:
-            return False
+        """Check if JWT token exists"""
+        return AuthTokenStorage.token_exists()
+
