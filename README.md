@@ -101,6 +101,7 @@ streamlit run app.py
 - **[USAGE.md](USAGE.md)** - Manual detallado de usuario
 - **[IMPLEMENTATION.md](IMPLEMENTATION.md)** - Detalles técnicos de implementación
 - **[MODAL_ALERTS.md](MODAL_ALERTS.md)** - Sistema de notificaciones modales
+- **[TESTING.md](TESTING.md)** - Guía completa de testing con pytest
 - **[Plan técnico](~/.copilot/session-state/.../plan.md)** - Arquitectura y roadmap
 
 ### 🔔 Sistema de Notificaciones Modales
