@@ -1,0 +1,19 @@
+- name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Garantir que o venv existe e atualizar
+        run: |
+          # O runner já está na pasta do repo
+          if [ ! -d "venv" ]; then
+            python3 -m venv venv
+          fi
+          ./venv/bin/pip install --upgrade pip
+          ./venv/bin/pip install streamlit
+          if [ -f requirements.txt ]; then ./venv/bin/pip install -r requirements.txt; fi
+
+      - name: Lançar App
+        run: |
+          fuser -k 8501/tcp || true
+          # Usamos o caminho relativo porque o runner 'está' na pasta
+          nohup ./venv/bin/streamlit run main.py --server.port 8501 > output.log 2>&1 &
+          disown
