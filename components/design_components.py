@@ -5,7 +5,6 @@ Componentes reutilizables siguiendo la estética Triune
 
 import streamlit as st
 from typing import Optional, Literal
-from textwrap import dedent
 
 # ============================================================================
 # CUSTOM CSS STREAMLIT
@@ -209,13 +208,8 @@ def header(title: str, subtitle: str = "", icon: str = ""):
         icon: Emoji o icon (opcional)
     """
     title_html = f'{icon} {title}' if icon else title
-    
-    html = dedent(f"""\
-    <div style="margin-bottom: 2rem;">
-        <h1 style="font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; color: #451A4D; margin: 0 0 0.5rem 0; letter-spacing: -0.02em;">{title_html}</h1>
-        {f'<p style="font-size: 1.1rem; color: #75687F; margin: 0;">{subtitle}</p>' if subtitle else ''}
-    </div>\
-    """).strip()
+    subtitle_html = f'<p style="font-size: 1.1rem; color: #75687F; margin: 0;">{subtitle}</p>' if subtitle else ''
+    html = f'<div style="margin-bottom: 2rem;"><h1 style="font-family: \'Playfair Display\', serif; font-size: 2.5rem; font-weight: 700; color: #451A4D; margin: 0 0 0.5rem 0; letter-spacing: -0.02em;">{title_html}</h1>{subtitle_html}</div>'
     st.markdown(html, unsafe_allow_html=True)
 
 
@@ -232,15 +226,8 @@ def card(title: str, content: str, accent: bool = False, icon: str = ""):
     bg_color = "#FEF9E7" if accent else "white"
     border_color = "#DAA520" if accent else "#E0DCD5"
     title_color = "#A942EA" if not accent else "#B8860B"
-    
     title_html = f'{icon} {title}' if icon else title
-    
-    html = dedent(f"""\
-    <div style="background-color: {bg_color}; border: 1px solid {border_color}; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-        <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.25rem; font-weight: 600; color: {title_color}; margin: 0 0 1rem 0;">{title_html}</h3>
-        <p style="color: #5F577A; line-height: 1.6; margin: 0; font-family: 'Montserrat', sans-serif;">{content}</p>
-    </div>\
-    """).strip()
+    html = f'<div style="background-color: {bg_color}; border: 1px solid {border_color}; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);"><h3 style="font-family: \'Montserrat\', sans-serif; font-size: 1.25rem; font-weight: 600; color: {title_color}; margin: 0 0 1rem 0;">{title_html}</h3><p style="color: #5F577A; line-height: 1.6; margin: 0; font-family: \'Montserrat\', sans-serif;">{content}</p></div>'
     st.markdown(html, unsafe_allow_html=True)
 
 
@@ -265,18 +252,9 @@ def alert(
     }
     
     style = colors.get(alert_type, colors["info"])
+    title_html = f'<p style="font-weight: 600; margin: 0 0 0.25rem 0;">{title}</p>' if title else ''
     
-    html = dedent(f"""\
-    <div style="background-color: {style['bg']}; border-left: 4px solid {style['border']}; padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 1rem;">
-        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-            <span style="color: {style['border']}; font-weight: 700; font-size: 1.25rem; line-height: 1;">{style['icon']}</span>
-            <div style="color: {style['color']};">
-                {f'<p style="font-weight: 600; margin: 0 0 0.25rem 0;">{title}</p>' if title else ''}
-                <p style="font-size: 0.95rem; line-height: 1.5; margin: 0;">{message}</p>
-            </div>
-        </div>
-    </div>\
-    """).strip()
+    html = f'<div style="background-color: {style["bg"]}; border-left: 4px solid {style["border"]}; padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 1rem;"><div style="display: flex; align-items: flex-start; gap: 0.75rem;"><span style="color: {style["border"]}; font-weight: 700; font-size: 1.25rem; line-height: 1;">{style["icon"]}</span><div style="color: {style["color"]};">{title_html}<p style="font-size: 0.95rem; line-height: 1.5; margin: 0;">{message}</p></div></div></div>'
     st.markdown(html, unsafe_allow_html=True)
 
 
@@ -288,11 +266,10 @@ def section_divider(title: str = ""):
         title: Título de la sección (opcional)
     """
     if title:
-        html = f"""<h2 style="font-family: 'Playfair Display', serif; font-size: 1.875rem; font-weight: 700; color: #6B2E6F; margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid #E0DCD5;">{title}</h2>"""
-        st.markdown(html, unsafe_allow_html=True)
+        html = f'<h2 style="font-family: \'Playfair Display\', serif; font-size: 1.875rem; font-weight: 700; color: #6B2E6F; margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid #E0DCD5;">{title}</h2>'
     else:
-        html = """<hr style="border: none; border-top: 2px solid #E0DCD5; margin: 2rem 0;" />"""
-        st.markdown(html, unsafe_allow_html=True)
+        html = '<hr style="border: none; border-top: 2px solid #E0DCD5; margin: 2rem 0;" />'
+    st.markdown(html, unsafe_allow_html=True)
 
 
 def stat_card(label: str, value: str, unit: str = "", icon: str = ""):
@@ -306,15 +283,8 @@ def stat_card(label: str, value: str, unit: str = "", icon: str = ""):
         icon: Emoji o icon (opcional)
     """
     icon_html = f'<span style="font-size: 1.75rem; margin-right: 0.75rem;">{icon}</span>' if icon else ''
-    
-    html = dedent(f"""\
-    <div style="background-color: white; border: 1px solid #E0DCD5; border-radius: 8px; padding: 1.5rem; text-align: center; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); margin-bottom: 1rem;">
-        <div style="margin-bottom: 0.5rem;">{icon_html}</div>
-        <p style="color: #75687F; font-size: 0.875rem; font-weight: 500; margin: 0 0 0.5rem 0; text-transform: uppercase; letter-spacing: 0.05em;">{label}</p>
-        <p style="color: #451A4D; font-size: 2rem; font-weight: 700; margin: 0; font-variant-numeric: tabular-nums;">{value}</p>
-        {f'<p style="color: #75687F; font-size: 0.875rem; margin: 0.5rem 0 0 0;">{unit}</p>' if unit else ''}
-    </div>\
-    """).strip()
+    unit_html = f'<p style="color: #75687F; font-size: 0.875rem; margin: 0.5rem 0 0 0;">{unit}</p>' if unit else ''
+    html = f'<div style="background-color: white; border: 1px solid #E0DCD5; border-radius: 8px; padding: 1.5rem; text-align: center; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); margin-bottom: 1rem;"><div style="margin-bottom: 0.5rem;">{icon_html}</div><p style="color: #75687F; font-size: 0.875rem; font-weight: 500; margin: 0 0 0.5rem 0; text-transform: uppercase; letter-spacing: 0.05em;">{label}</p><p style="color: #451A4D; font-size: 2rem; font-weight: 700; margin: 0; font-variant-numeric: tabular-nums;">{value}</p>{unit_html}</div>'
     st.markdown(html, unsafe_allow_html=True)
 
 
@@ -328,15 +298,7 @@ def progress_bar(label: str, value: float, total: float = 100):
         total: Valor total (default: 100)
     """
     percentage = (value / total) * 100
-    
-    html = dedent(f"""\
-    <div style="margin-bottom: 1rem;">
-        <p style="font-family: 'Montserrat', sans-serif; font-size: 0.875rem; font-weight: 500; color: #1F2937; margin-bottom: 0.5rem;">{label} <span style="color: #6C7281;">{value} / {total}</span></p>
-        <div style="width: 100%; height: 8px; background-color: #EEEBE5; border-radius: 4px; overflow: hidden;">
-            <div style="width: {percentage}%; height: 100%; background-color: #A942EA; transition: width 0.3s ease;"></div>
-        </div>
-    </div>\
-    """).strip()
+    html = f'<div style="margin-bottom: 1rem;"><p style="font-family: \'Montserrat\', sans-serif; font-size: 0.875rem; font-weight: 500; color: #1F2937; margin-bottom: 0.5rem;">{label} <span style="color: #6C7281;">{value} / {total}</span></p><div style="width: 100%; height: 8px; background-color: #EEEBE5; border-radius: 4px; overflow: hidden;"><div style="width: {percentage}%; height: 100%; background-color: #A942EA; transition: width 0.3s ease;"></div></div></div>'
     st.markdown(html, unsafe_allow_html=True)
 
 
@@ -348,11 +310,5 @@ def empty_state(
     """
     Estado vacío profesional.
     """
-    html = dedent(f"""\
-    <div style="text-align: center; padding: 3rem 2rem; color: #6C7281;">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">{icon}</div>
-        <h3 style="font-family: 'Playfair Display', serif; font-size: 1.25rem; color: #1F2937; margin-bottom: 0.5rem;">{title}</h3>
-        <p style="margin: 0;">{message}</p>
-    </div>\
-    """).strip()
+    html = f'<div style="text-align: center; padding: 3rem 2rem; color: #6C7281;"><div style="font-size: 3rem; margin-bottom: 1rem;">{icon}</div><h3 style="font-family: \'Playfair Display\', serif; font-size: 1.25rem; color: #1F2937; margin-bottom: 0.5rem;">{title}</h3><p style="margin: 0;">{message}</p></div>'
     st.markdown(html, unsafe_allow_html=True)
