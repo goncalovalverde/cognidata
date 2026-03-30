@@ -169,12 +169,12 @@ def require_auth():
 
 def require_auth_with_persistence():
     """
-    Require authentication with session persistence via database storage.
+    Require authentication with session persistence via database + query parameters.
     
     Checks authentication in this order:
     1. st.session_state.authenticated (in-memory session from current run)
-    2. Authorization header with valid JWT token (for API clients)
-    3. Database session record (for browser reloads)
+    2. Query parameter 'auth_token' (persisted across reloads)
+    3. Database session record (validate against database)
     4. Shows login form if none exist
     
     This allows users to stay logged in across page reloads.
@@ -187,15 +187,20 @@ def require_auth_with_persistence():
     if st.session_state.authenticated:
         return
     
-    # Try to recover from JWT token in query parameters or session state
-    # (This is set when user logs in - token is in URL or captured)
-    token = st.session_state.get("auth_token")
+    # Try to recover token from URL query parameters
+    # This is set when user logs in - token persists in URL across reloads
+    token = st.query_params.get("auth_token")
+    if not token:
+        # Fallback: check session state (in case token was set earlier in this run)
+        token = st.session_state.get("auth_token")
+    
     if token:
         user = SessionManager.validate_token_in_session(token)
         if user:
             # Token is valid in database - restore session
             st.session_state.user = user
             st.session_state.authenticated = True
+            st.session_state.auth_token = token
             return
     
     # No valid session - show login form
@@ -233,17 +238,21 @@ def login(username: str, password: str) -> bool:
         st.session_state.authenticated = True
         st.session_state.login_attempts = 0
         
-        # NEW: Generate JWT token and create server-side session
+        # Generate JWT token and create server-side session
         token = JWTManager.generate_token(user)
-        st.session_state.auth_token = token  # Store in session state for persistence check
+        st.session_state.auth_token = token
         
-        # Create database session record for page reload recovery
+        # Create database session record for validation
         token_expires_at = datetime.utcnow() + timedelta(hours=JWTManager.EXPIRATION_HOURS)
         SessionManager.create_session(
             user=user,
             token=token,
             token_expires_at=token_expires_at,
         )
+        
+        # IMPORTANT: Store token in URL query parameters so it persists across reloads
+        # This is the key to session persistence - the URL includes the token
+        st.query_params["auth_token"] = token
         
         audit_service.log(
             action="auth.login",
@@ -267,7 +276,7 @@ def logout():
             details={"username": st.session_state.user.username},
         )
         
-        # NEW: Invalidate database session
+        # Invalidate database session
         token = st.session_state.get("auth_token")
         if token:
             SessionManager.invalidate_session(token)
@@ -275,6 +284,10 @@ def logout():
     st.session_state.user = None
     st.session_state.authenticated = False
     st.session_state.auth_token = None
+    
+    # Remove token from URL query parameters
+    if "auth_token" in st.query_params:
+        del st.query_params["auth_token"]
 
 
 def get_current_user() -> Optional[User]:
