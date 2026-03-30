@@ -1,19 +1,51 @@
-- name: Checkout do código
+name: Deploy Streamlit App (Manual/Venv)
+
+# Gatilhos: Corre automaticamente no push para a master ou manualmente pelo botão
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    # Este nome deve coincidir com a label do teu runner na Orange Pi
+    runs-on: self-hosted
+
+    steps:
+      - name: 1. Checkout do código
         uses: actions/checkout@v4
 
-      - name: Garantir que o venv existe e atualizar
+      - name: 2. Configurar Ambiente Virtual (venv)
         run: |
-          # O runner já está na pasta do repo
+          # Se o venv não existir na pasta do runner, cria-o
           if [ ! -d "venv" ]; then
             python3 -m venv venv
           fi
+          # Atualiza o pip e instala o Streamlit + dependências
           ./venv/bin/pip install --upgrade pip
           ./venv/bin/pip install streamlit
-          if [ -f requirements.txt ]; then ./venv/bin/pip install -r requirements.txt; fi
+          if [ -f requirements.txt ]; then 
+            ./venv/bin/pip install -r requirements.txt
+          fi
 
-      - name: Lançar App
+      - name: 3. Limpar porta e Lançar Streamlit
         run: |
+          # Tenta libertar a porta 8501 se a app antiga estiver a correr
+          # O "|| true" garante que a pipeline não falha se a porta já estiver livre
           fuser -k 8501/tcp || true
-          # Usamos o caminho relativo porque o runner 'está' na pasta
-          nohup ./venv/bin/streamlit run main.py --server.port 8501 > output.log 2>&1 &
+          
+          # Lança a app em background
+          # --server.address 0.0.0.0 permite acesso externo/rede
+          nohup ./venv/bin/streamlit run main.py \
+            --server.port 8501 \
+            --server.address 0.0.0.0 \
+            --server.headless true > streamlit_output.log 2>&1 &
+          
+          # Disown liberta o processo do shell do runner para ele não morrer
           disown
+
+      - name: 4. Verificar Status
+        run: |
+          sleep 5
+          ps aux | grep streamlit | grep -v grep
+          echo "App a correr. Logs disponíveis em streamlit_output.log"
