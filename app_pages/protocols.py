@@ -9,12 +9,12 @@ from services.protocol_service import protocol_service
 from models import Protocol
 from utils.colors import COLORS
 from services.audit import audit_service
+from components.design_components import alert, header
 
 
 def render():
     """Render the protocols management page"""
-    st.header("📋 Gestión de Protocolos")
-    st.markdown("Crea y gestiona protocolos de evaluación neuropsicológica reutilizables")
+    header("📋 Gestión de Protocolos", "Crea y gestiona protocolos de evaluación neuropsicológica reutilizables")
     st.markdown("---")
     
     # Initialize session state for UI
@@ -48,7 +48,7 @@ def _render_view_protocols():
     categories = protocol_service.list_categories()
     
     if not protocols:
-        st.info("📭 No hay protocolos definidos aún. Crea uno en la pestaña '➕ Crear Protocolo'")
+        alert("No hay protocolos definidos aún. Crea uno en la pestaña '➕ Crear Protocolo'", type="info")
         return
     
     # Filter by category
@@ -194,11 +194,11 @@ def _render_create_protocol():
         
         if submitted:
             if not name:
-                st.error("❌ El nombre del protocolo es obligatorio")
+                alert("El nombre del protocolo es obligatorio", type="error")
             elif not selected_tests:
-                st.error("❌ Debes seleccionar al menos un teste")
+                alert("Debes seleccionar al menos un teste", type="error")
             elif protocol_service.get_protocol_by_name(name):
-                st.error(f"❌ Ya existe un protocolo con el nombre '{name}'. Elige otro nombre")
+                alert(f"Ya existe un protocolo con el nombre '{name}'. Elige otro nombre", type="error")
             else:
                 try:
                     protocol = protocol_service.create_protocol(
@@ -215,12 +215,12 @@ def _render_create_protocol():
                         details={"name": name, "test_count": len(selected_tests)}
                     )
                     
-                    st.success(f"✅ Protocolo '{name}' creado con éxito")
+                    alert(f"Protocolo '{name}' creado con éxito", type="success")
                     st.balloons()
                     st.rerun()
                 
                 except Exception as e:
-                    st.error(f"❌ Error al crear protocolo: {str(e)}")
+                    alert(f"Error al crear protocolo: {str(e)}", type="error")
 
 
 def _render_edit_protocol():
@@ -229,7 +229,7 @@ def _render_edit_protocol():
     
     protocols = protocol_service.list_protocols()
     if not protocols:
-        st.info("📭 No hay protocolos para editar")
+        alert("No hay protocolos para editar", type="info")
         return
     
     # Select protocol to edit
@@ -247,7 +247,7 @@ def _render_edit_protocol():
     protocol = protocol_service.get_protocol(protocol_id)
     
     if not protocol:
-        st.error("❌ Protocolo no encontrado")
+        alert("Protocolo no encontrado", type="error")
         return
     
     # Display current protocol info
@@ -321,11 +321,11 @@ def _render_edit_protocol():
         
         if submitted:
             if not name:
-                st.error("❌ El nombre es obligatorio")
+                alert("El nombre es obligatorio", type="error")
             elif not selected_tests:
-                st.error("❌ Debes tener al menos un teste")
+                alert("Debes tener al menos un teste", type="error")
             elif name != protocol.name and protocol_service.get_protocol_by_name(name):
-                st.error(f"❌ Ya existe un protocolo con el nombre '{name}'. Elige otro nombre")
+                alert(f"Ya existe un protocolo con el nombre '{name}'. Elige otro nombre", type="error")
             else:
                 try:
                     updated = protocol_service.update_protocol(
@@ -343,11 +343,11 @@ def _render_edit_protocol():
                         details={"name": name}
                     )
                     
-                    st.success(f"✅ Protocolo actualizado")
+                    alert("Protocolo actualizado", type="success")
                     st.rerun()
                 
                 except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
+                    alert(f"Error: {str(e)}", type="error")
     
     # Delete button OUTSIDE of form
     st.markdown("---")

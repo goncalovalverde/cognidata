@@ -12,6 +12,7 @@ from database.connection import init_db
 from utils.auth import require_auth_with_persistence, render_user_menu, init_auth_state
 from utils.colors import COLORS
 from app_pages import home, patients, tests, dashboard, config, protocols
+from components.design_components import apply_design_system
 
 
 st.set_page_config(
@@ -27,6 +28,9 @@ init_auth_state()
 
 def main():
     """Main application entry point"""
+    # Apply Triune design system (colors, typography, icons)
+    apply_design_system()
+    
     require_auth_with_persistence()  # NEW: With session persistence via JWT cookies
 
     with st.sidebar:

@@ -12,6 +12,7 @@ from services.user_service import (
     create_user, update_user, delete_user, get_all_users, change_password, hash_password
 )
 from models import UserRole
+from components.design_components import alert
 
 
 def render():
@@ -42,9 +43,9 @@ def _render_backup_section():
         try:
             shutil.copy2("cognidata.db", f"backups/{backup_filename}")
             audit_service.log_backup_create(backup_filename)
-            st.success(f"✅ Backup creado: {backup_filename}")
+            alert(f"Backup creado: {backup_filename}", type="success")
         except Exception as e:
-            st.error(f"❌ Error al crear backup: {str(e)}")
+            alert(f"Error al crear backup: {str(e)}", type="error")
 
 
 def _render_export_section():
@@ -52,7 +53,7 @@ def _render_export_section():
     st.markdown("### 📤 Exportar Datos")
 
     if st.button("Exportar JSON"):
-        st.info("🚧 Funcionalidad en desarrollo")
+        alert("Funcionalidad en desarrollo", type="info")
 
 
 def _render_user_management():
@@ -92,9 +93,9 @@ def _render_view_users():
             df_users = pd.DataFrame(user_data)
             st.dataframe(df_users, width='stretch', hide_index=True)
         else:
-            st.info("No hay usuarios registrados")
+            alert("No hay usuarios registrados", type="info")
     except Exception as e:
-        st.error(f"Error al cargar usuarios: {str(e)}")
+        alert(f"Error al cargar usuarios: {str(e)}", type="error")
 
 
 def _render_create_user():
@@ -132,17 +133,17 @@ def _render_create_user():
             
             if errors:
                 for error in errors:
-                    st.error(f"❌ {error}")
+                    alert(error, type="error")
             else:
                 try:
                     role_enum = UserRole[role.upper()]
                     create_user(username, password, full_name, role_enum)
-                    st.success(f"✅ Usuario '{username}' creado exitosamente")
+                    alert(f"Usuario '{username}' creado exitosamente", type="success")
                     st.rerun()
                 except ValueError as e:
-                    st.error(f"❌ Error: {str(e)}")
+                    alert(f"Error: {str(e)}", type="error")
                 except Exception as e:
-                    st.error(f"❌ Error al crear usuario: {str(e)}")
+                    alert(f"Error al crear usuario: {str(e)}", type="error")
 
 
 def _render_edit_delete_user():
@@ -153,7 +154,7 @@ def _render_edit_delete_user():
         users = get_all_users()
         
         if not users:
-            st.info("No hay usuarios para editar")
+            alert("No hay usuarios para editar", type="info")
             return
         
         user_options = {u.username: u for u in users}
@@ -188,10 +189,10 @@ def _render_edit_delete_user():
                         try:
                             role_enum = UserRole[new_role.upper()]
                             update_user(selected_username, new_full_name, role_enum)
-                            st.success(f"✅ Usuario actualizado exitosamente")
+                            alert("Usuario actualizado exitosamente", type="success")
                             st.rerun()
                         except Exception as e:
-                            st.error(f"❌ Error al actualizar: {str(e)}")
+                            alert(f"Error al actualizar: {str(e)}", type="error")
             
             with col2:
                 st.markdown("#### Cambiar Contraseña")
@@ -203,15 +204,15 @@ def _render_edit_delete_user():
                     
                     if pwd_submitted:
                         if not new_password or len(new_password) < 6:
-                            st.error("❌ La contraseña debe tener al menos 6 caracteres")
+                            alert("La contraseña debe tener al menos 6 caracteres", type="error")
                         elif new_password != new_password_confirm:
-                            st.error("❌ Las contraseñas no coinciden")
+                            alert("Las contraseñas no coinciden", type="error")
                         else:
                             try:
                                 change_password(selected_username, new_password)
-                                st.success(f"✅ Contraseña actualizada exitosamente")
+                                alert("Contraseña actualizada exitosamente", type="success")
                             except Exception as e:
-                                st.error(f"❌ Error: {str(e)}")
+                                alert(f"Error: {str(e)}", type="error")
             
             st.markdown("---")
             st.markdown("#### 🗑️ Eliminar Usuario")
@@ -225,7 +226,7 @@ def _render_edit_delete_user():
                 show_delete_user_modal(selected_username)
     
     except Exception as e:
-        st.error(f"Error al cargar usuarios: {str(e)}")
+        alert(f"Error al cargar usuarios: {str(e)}", type="error")
 
 
 def _render_audit_logs():
@@ -265,7 +266,7 @@ def _render_audit_logs():
             df_logs = pd.DataFrame(log_data)
             st.dataframe(df_logs, width='stretch', hide_index=True)
         else:
-            st.info("No hay registros de auditoría")
+            alert("No hay registros de auditoría", type="info")
 
 
 
@@ -300,7 +301,7 @@ def show_delete_user_modal(username: str):
                 st.session_state.delete_user_name = None
                 st.rerun()
             except Exception as e:
-                st.error(f"❌ Error al eliminar: {str(e)}")
+                alert(f"Error al eliminar: {str(e)}", type="error")
     
     with col2:
         if st.button("❌ Cancelar", use_container_width=True):

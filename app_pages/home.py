@@ -5,6 +5,7 @@ Home page - Dashboard overview
 import streamlit as st
 from database.connection import SessionLocal
 from models import Patient, TestSession
+from components.design_components import alert
 
 
 def render():
@@ -26,9 +27,9 @@ def render():
     st.markdown("---")
 
     st.subheader("✅ Estado del Sistema")
-    st.success("✓ Base de datos SQLite conectada")
-    st.success("✓ Modelos inicializados")
-    st.success("✓ Motor de cálculo normativo operativo")
+    alert("Base de datos SQLite conectada", type="success")
+    alert("Modelos inicializados", type="success")
+    alert("Motor de cálculo normativo operativo", type="success")
 
     st.markdown("---")
 

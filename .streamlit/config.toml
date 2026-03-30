@@ -1,0 +1,17 @@
+[theme]
+# Triune Design System - Validated Colors
+primaryColor = "#A942EA"           # Púrpura vibrante (botones, acentos)
+backgroundColor = "#F6F5F2"        # Gris ultra claro (fondo principal)
+secondaryBackgroundColor = "#FFFFFF" # Blanco (tarjetas, elementos)
+textColor = "#75687F"              # Gris oscuro (texto secundario)
+font = "sans serif"
+
+[client]
+# Enhance app appearance
+showErrorDetails = true
+
+[logger]
+level = "info"
+
+[browser]
+gatherUsageStats = false
