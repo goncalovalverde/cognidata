@@ -34,7 +34,7 @@ def _render_patient_list():
         patients = db.query(Patient).order_by(Patient.created_at.desc()).all()
 
         if patients:
-            for patient in patients:
+            for i, patient in enumerate(patients):
                 patient_id = patient.id
                 age = patient.age
                 education = patient.education_years
@@ -51,36 +51,21 @@ def _render_patient_list():
 
                     st.caption(f"Creado: {created_at.strftime('%d/%m/%Y %H:%M')}")
 
-                    _render_delete_button(patient_id)
+                    # Delete button triggers modal via session state
+                    if st.button("🗑️ Eliminar", key=f"delete_patient_{patient_id}", use_container_width=True, type="secondary"):
+                        st.session_state.show_delete_patient_modal = True
+                        st.session_state.delete_patient_id = patient_id
+                        st.rerun()
+                    
+                    # Check if delete modal should be shown
+                    if st.session_state.get("show_delete_patient_modal", False) and st.session_state.get("delete_patient_id") == patient_id:
+                        show_delete_patient_modal(patient_id)
         else:
             st.info(
                 "No hay pacientes registrados. Crea uno en la pestaña 'Nuevo Paciente'"
             )
     finally:
         db.close()
-
-
-def _render_delete_button(patient_id: str):
-    """Render delete button with confirmation"""
-    col1, col2 = st.columns([3, 1])
-
-    with col1:
-        st.warning(f"¿Eliminar paciente {patient_id[:8]}...?")
-
-    with col2:
-        if st.button("Sí, eliminar", key=f"del_{patient_id}", type="primary"):
-            db = SessionLocal()
-            try:
-                patient_to_delete = db.query(Patient).filter_by(id=patient_id).first()
-                if patient_to_delete:
-                    db.delete(patient_to_delete)
-                    db.commit()
-            finally:
-                db.close()
-
-            audit_service.log_patient_delete(patient_id)
-            st.success("Paciente eliminado")
-            st.rerun()
 
 
 def _render_new_patient_form():
@@ -259,3 +244,52 @@ def show_unassign_protocol_modal(patient_id: str, protocol_id: str, protocol_nam
         if st.button("❌ Cancelar", use_container_width=True):
             st.session_state.show_unassign_confirmation = False
             st.rerun()
+
+
+@st.dialog("⚠️ Confirmar Eliminación de Paciente", width="large")
+def show_delete_patient_modal(patient_id: str):
+    """Show modal to confirm patient deletion"""
+    st.markdown(f"""
+    <div style='
+        background-color: #ffebee;
+        border-left: 4px solid #ef5350;
+        padding: 16px;
+        border-radius: 6px;
+        color: #212121;
+        font-size: 16px;
+    '>
+        ¿Está seguro de que desea eliminar el paciente?
+        <br><br>
+        <b>ID: {patient_id[:12]}...</b>
+        <br><br>
+        Esta acción es <b>irreversible</b> y eliminará todos los tests asociados.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("✅ Sí, eliminar", type="primary", use_container_width=True):
+            db = SessionLocal()
+            try:
+                patient_to_delete = db.query(Patient).filter_by(id=patient_id).first()
+                if patient_to_delete:
+                    db.delete(patient_to_delete)
+                    db.commit()
+            finally:
+                db.close()
+            
+            audit_service.log_patient_delete(patient_id)
+            st.toast(f"✅ Paciente eliminado correctamente", icon="✅")
+            
+            st.session_state.show_delete_patient_modal = False
+            st.session_state.delete_patient_id = None
+            st.rerun()
+    
+    with col2:
+        if st.button("❌ Cancelar", use_container_width=True):
+            st.session_state.show_delete_patient_modal = False
+            st.rerun()
+

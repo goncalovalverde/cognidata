@@ -216,12 +216,13 @@ def _render_edit_delete_user():
             st.markdown("---")
             st.markdown("#### 🗑️ Eliminar Usuario")
             if st.button(f"❌ Eliminar usuario '{selected_username}'", key="delete_user_btn"):
-                try:
-                    delete_user(selected_username)
-                    st.success(f"✅ Usuario '{selected_username}' eliminado")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Error al eliminar: {str(e)}")
+                st.session_state.show_delete_user_modal = True
+                st.session_state.delete_user_name = selected_username
+                st.rerun()
+            
+            # Check if delete modal should be shown
+            if st.session_state.get("show_delete_user_modal", False) and st.session_state.get("delete_user_name") == selected_username:
+                show_delete_user_modal(selected_username)
     
     except Exception as e:
         st.error(f"Error al cargar usuarios: {str(e)}")
@@ -266,3 +267,42 @@ def _render_audit_logs():
         else:
             st.info("No hay registros de auditoría")
 
+
+
+@st.dialog("⚠️ Confirmar Eliminación de Usuario", width="large")
+def show_delete_user_modal(username: str):
+    """Show modal to confirm user deletion"""
+    st.markdown(f"""
+    <div style='
+        background-color: #ffebee;
+        border-left: 4px solid #ef5350;
+        padding: 16px;
+        border-radius: 6px;
+        color: #212121;
+        font-size: 16px;
+    '>
+        ¿Está seguro de que desea eliminar el usuario "<b>{username}</b>"?
+        <br><br>
+        Esta acción es <b>irreversible</b> y no podrá restaurarse.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("✅ Sí, eliminar", type="primary", use_container_width=True):
+            try:
+                delete_user(username)
+                st.toast(f"✅ Usuario '{username}' eliminado correctamente", icon="✅")
+                st.session_state.show_delete_user_modal = False
+                st.session_state.delete_user_name = None
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ Error al eliminar: {str(e)}")
+    
+    with col2:
+        if st.button("❌ Cancelar", use_container_width=True):
+            st.session_state.show_delete_user_modal = False
+            st.rerun()
