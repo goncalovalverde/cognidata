@@ -88,3 +88,27 @@ def expected_scores():
         "z_score": float,
         "clasificacion": str,
     }
+
+
+@pytest.fixture
+def sample_protocol_data():
+    """Sample protocol data for testing"""
+    return {
+        "name": "Screening Cognitivo",
+        "description": "Protocol para rastreio inicial de deterioro cognitivo",
+        "category": "Rastreio",
+    }
+
+
+@pytest.fixture
+def sample_patient_id():
+    """Sample patient UUID for testing"""
+    from uuid import uuid4
+    return str(uuid4())
+
+
+@pytest.fixture
+def sample_protocol_id():
+    """Sample protocol UUID for testing"""
+    from uuid import uuid4
+    return str(uuid4())
