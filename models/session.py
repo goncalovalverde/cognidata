@@ -50,7 +50,8 @@ class AuthSession(Base):
     
     # Store token hash instead of plain token for security
     # Clients send token in header, we hash it and compare
-    token_hash = Column(String(256), nullable=False, unique=True)
+    # Note: Not unique - one token could theoretically be used in multiple sessions
+    token_hash = Column(String(256), nullable=False, index=True)
     
     # Token expiration time (matches JWT exp)
     token_expires_at = Column(DateTime, nullable=False)
