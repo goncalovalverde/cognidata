@@ -13,19 +13,21 @@ from models import Patient, TestSession
 from services.normatives import calculator
 from services.audit import audit_service
 from services.patient_protocol_service import patient_protocol_service
+from components.design_components import alert, header
 
 
 def render():
     """Render the tests page"""
-    st.subheader("Realizar Test Neuropsicológico")
+    header("<i class='ph ph-flask'></i> Realizar Test Neuropsicológico", "")
 
     db = SessionLocal()
     try:
         patients = db.query(Patient).order_by(Patient.created_at.desc()).all()
 
         if not patients:
-            st.warning(
-                "⚠️ No hay pacientes registrados. Crea uno primero en la sección 'Pacientes'."
+            alert(
+                "No hay pacientes registrados. Crea uno primero en la sección 'Pacientes'.",
+                type="warning"
             )
         else:
             patient_options = {f"{p.id[:8]}... ({p.age} años)": p.id for p in patients}
@@ -189,7 +191,7 @@ def _render_tmt_a_form(patient_id: str):
 
             _save_test_session(patient_id, "TMT-A", raw_data, scores)
 
-            st.success("✅ Test TMT-A guardado exitosamente!")
+            alert("Test TMT-A guardado exitosamente!", type="success")
             _display_scores(scores)
 
 
@@ -235,7 +237,7 @@ def _render_tmt_b_form(patient_id: str):
 
             _save_test_session(patient_id, "TMT-B", raw_data, scores)
 
-            st.success("✅ Test TMT-B guardado exitosamente!")
+            alert("Test TMT-B guardado exitosamente!", type="success")
             _display_scores(scores)
 
 
@@ -259,7 +261,7 @@ def _render_tavec_form(patient_id: str):
             ensayo5 = st.number_input("Ensayo 5", 0, 16, 14, key="e5")
 
         total_a = ensayo1 + ensayo2 + ensayo3 + ensayo4 + ensayo5
-        st.info(f"**Total Lista A (ensayos 1-5):** {total_a} palabras")
+        alert(f"**Total Lista A (ensayos 1-5):** {total_a} palabras", type="info")
 
         st.markdown("---")
         col1, col2 = st.columns(2)
@@ -312,7 +314,7 @@ def _render_tavec_form(patient_id: str):
 
             _save_test_session(patient_id, "TAVEC", raw_data, scores)
 
-            st.success("✅ Test TAVEC guardado exitosamente!")
+            alert("Test TAVEC guardado exitosamente!", type="success")
             _display_scores(scores)
 
 
@@ -331,7 +333,7 @@ def _render_fluidez_form(patient_id: str):
             letra_s = st.number_input("Letra S", 0, 50, 13)
 
         total_fas = letra_f + letra_a + letra_s
-        st.info(f"**Total F-A-S:** {total_fas} palabras")
+        alert(f"**Total F-A-S:** {total_fas} palabras", type="info")
 
         st.markdown("**Errores**")
         col1, col2 = st.columns(2)
@@ -368,7 +370,7 @@ def _render_fluidez_form(patient_id: str):
 
             _save_test_session(patient_id, "Fluidez-FAS", raw_data, scores)
 
-            st.success("✅ Test de Fluidez Verbal guardado exitosamente!")
+            alert("Test de Fluidez Verbal guardado exitosamente!", type="success")
             _display_scores(scores)
 
 
@@ -422,7 +424,7 @@ def _render_rey_copia_form(patient_id: str):
 
             _save_test_session(patient_id, "Rey-Copia", raw_data, scores)
 
-            st.success("✅ Test Figura de Rey (Copia) guardado exitosamente!")
+            alert("Test Figura de Rey (Copia) guardado exitosamente!", type="success")
             _display_scores(scores)
 
 
@@ -462,7 +464,7 @@ def _render_rey_memoria_form(patient_id: str):
 
             _save_test_session(patient_id, "Rey-Memoria", raw_data, scores)
 
-            st.success("✅ Test Figura de Rey (Memoria) guardado exitosamente!")
+            alert("Test Figura de Rey (Memoria) guardado exitosamente!", type="success")
             _display_scores(scores)
 
 
@@ -575,7 +577,7 @@ def _render_toulouse_pieron_form(patient_id: str):
                         st.image(ocr['bw_image_path'], width='stretch',
                                 caption="Conversión B/N automática - Muestra cómo ve el OCR los marcados")
                     else:
-                        st.info("No disponible")
+                        alert("No disponible", type="info")
             
             with col_img2:
                 with st.expander("📍 Análisis de Cuadrícula", expanded=True):
@@ -583,8 +585,8 @@ def _render_toulouse_pieron_form(patient_id: str):
                         st.image(ocr['processed_image_path'], width='stretch',
                                 caption="Celdas detectadas como marcadas (verde) y no marcadas (rojo)")
                     else:
-                        st.info("No disponible")
-            st.success(f"✅ Análisis completado con {ocr['confidence']*100:.0f}% de confianza")
+                        alert("No disponible", type="info")
+            alert(f"Análisis completado con {ocr['confidence']*100:.0f}% de confianza", type="success")
             
             col1, col2, col3 = st.columns(3)
             col1.metric("Celdas Totales", ocr['total_cells_detected'])
@@ -597,8 +599,8 @@ def _render_toulouse_pieron_form(patient_id: str):
                     st.image(analyzed_image, caption="Marcaciones detectadas (verde)", width='stretch')
         
         elif st.session_state.ocr_results and not st.session_state.ocr_results.get('success'):
-            st.warning(f"⚠️ OCR Error: {st.session_state.ocr_results.get('error')}")
-            st.info("Puedes introducir los valores manualmente a continuación.")
+            alert(f"OCR Error: {st.session_state.ocr_results.get('error')}", type="warning")
+            alert("Puedes introducir los valores manualmente a continuación.", type="info")
     
     # Manual entry form
     with st.form("toulouse_pieron_form"):
@@ -667,7 +669,7 @@ def _render_toulouse_pieron_form(patient_id: str):
         
         if submitted:
             if uploaded_file is None:
-                st.error("⚠️ Por favor, sube una imagen del test antes de guardar.")
+                alert("Por favor, sube una imagen del test antes de guardar.", type="error")
                 return
             
             # Save the uploaded image
@@ -707,8 +709,8 @@ def _render_toulouse_pieron_form(patient_id: str):
             
             _save_test_session(patient_id, "Toulouse-Pieron", raw_data, scores)
             
-            st.success("✅ Test Toulouse-Pieron guardado exitosamente!")
-            st.info(f"📁 Imagen guardada: {image_filename}")
+            alert("Test Toulouse-Pieron guardado exitosamente!", type="success")
+            alert(f"Imagen guardada: {image_filename}", type="info")
             _display_scores(scores)
             
             # Clear OCR results for next test
@@ -816,17 +818,17 @@ def _render_torre_de_londres_form(patient_id: str):
                     validation_errors.append(f"Ítem {item_num}: Tiempo debe ser un número")
             
             if validation_errors:
-                st.error("❌ Errores en los datos:")
+                alert("Errores en los datos:", type="error")
                 for error in validation_errors:
-                    st.error(f"  • {error}")
+                    alert(f"• {error}", type="error")
             else:
                 # Calculate metrics (now includes time consideration)
                 result = tol_calculator.calculate(movement_counts, time_seconds)
             
             if not result['valid']:
-                st.error("❌ Errores en los datos:")
+                alert("Errores en los datos:", type="error")
                 for error in result['errors']:
-                    st.error(f"  • {error}")
+                    alert(f"• {error}", type="error")
             else:
                 # Prepare raw data for storage
                 raw_data = {
@@ -851,7 +853,7 @@ def _render_torre_de_londres_form(patient_id: str):
                 # Save test session
                 _save_test_session(patient_id, "Torre de Londres", raw_data, scores)
                 
-                st.success("✅ Test Torre de Londres guardado exitosamente!")
+                alert("Test Torre de Londres guardado exitosamente!", type="success")
                 _display_scores(scores)
                 
                 # Display detailed results

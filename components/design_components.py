@@ -15,6 +15,12 @@ def apply_design_system():
     Aplica el design system de Triune a toda la aplicación Streamlit.
     Debe ejecutarse una sola vez al inicio de la app.
     """
+    # Import Phosphor Icons library
+    phosphor_icons_html = """
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    """
+    
     custom_css = """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;500;600&display=swap');
@@ -183,6 +189,9 @@ def apply_design_system():
     </style>
     """
     st.markdown(custom_css, unsafe_allow_html=True)
+    
+    # Inject Phosphor Icons library
+    st.markdown(phosphor_icons_html, unsafe_allow_html=True)
 
 
 # ============================================================================

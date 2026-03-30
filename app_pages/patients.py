@@ -9,6 +9,7 @@ from services.audit import audit_service
 from services.patient_protocol_service import patient_protocol_service
 from services.protocol_service import protocol_service
 from utils.alerts import modal_error
+from components.design_components import alert, header
 
 
 def render():
@@ -61,8 +62,9 @@ def _render_patient_list():
                     if st.session_state.get("show_delete_patient_modal", False) and st.session_state.get("delete_patient_id") == patient_id:
                         show_delete_patient_modal(patient_id)
         else:
-            st.info(
-                "No hay pacientes registrados. Crea uno en la pestaña 'Nuevo Paciente'"
+            alert(
+                "No hay pacientes registrados. Crea uno en la pestaña 'Nuevo Paciente'", 
+                type="info"
             )
     finally:
         db.close()
@@ -102,7 +104,7 @@ def _render_new_patient_form():
                 },
             )
 
-            st.success(f"✅ Paciente creado con ID: {patient_id[:12]}...")
+            alert(f"Paciente creado con ID: {patient_id[:12]}...", type="success")
             st.balloons()
 
 
@@ -115,7 +117,7 @@ def _render_patient_protocols():
         patients = db.query(Patient).order_by(Patient.created_at.desc()).all()
         
         if not patients:
-            st.info("No hay pacientes registrados")
+            alert("No hay pacientes registrados", type="info")
             return
         
         # Select patient
@@ -199,13 +201,13 @@ def _render_patient_protocols():
             
             if st.button("✅ Asignar Protocolo", use_container_width=True, type="primary"):
                 patient_protocol_service.assign_protocol(selected_patient_id, selected_protocol_id)
-                st.success("✅ Protocolo asignado correctamente")
+                alert("Protocolo asignado correctamente", type="success")
                 st.rerun()
         else:
             if assignments:
-                st.info("✅ Todos los protocolos disponibles ya están asignados a este paciente")
+                alert("Todos los protocolos disponibles ya están asignados a este paciente", type="info")
             else:
-                st.warning("No hay protocolos disponibles. Crea uno en la pestaña 'Protocolos'")
+                alert("No hay protocolos disponibles. Crea uno en la pestaña 'Protocolos'", type="warning")
     
     finally:
         db.close()

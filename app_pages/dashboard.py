@@ -12,11 +12,12 @@ from models import Patient, TestSession, Protocol
 from services.pdf_generator import pdf_generator
 from services.audit import audit_service
 from services.patient_protocol_service import patient_protocol_service
+from components.design_components import alert, header
 
 
 def render():
     """Render the dashboard page"""
-    st.subheader("📊 Panel de Análisis y Perfil Cognitivo")
+    header("<i class='ph ph-chart-bar'></i> Panel de Análisis y Perfil Cognitivo", "")
 
     # Create tabs
     tab1, tab2 = st.tabs(["🧪 Perfil Cognitivo", "📑 Estadísticas de Protocolos"])
@@ -102,7 +103,7 @@ def _render_protocol_statistics():
         protocols = db.query(Protocol).all()
         
         if not protocols:
-            st.info("No hay protocolos definidos. Crea uno en la sección 'Protocolos'")
+            alert("No hay protocolos definidos. Crea uno en la sección 'Protocolos'", type="info")
             return
         
         # Protocol usage statistics
@@ -397,13 +398,13 @@ def _render_interpretation():
     with col1:
         st.metric("Media de Puntuación Escalar", f"{mean_pe:.1f}")
         if mean_pe >= 13:
-            st.success("🟢 Rendimiento global superior a la media")
+            alert("Rendimiento global superior a la media", type="success")
         elif mean_pe >= 7:
-            st.info("🔵 Rendimiento global dentro de la normalidad")
+            alert("Rendimiento global dentro de la normalidad", type="info")
         elif mean_pe >= 4:
-            st.warning("🟡 Rendimiento global en rango limítrofe")
+            alert("Rendimiento global en rango limítrofe", type="warning")
         else:
-            st.error("🔴 Rendimiento global por debajo de lo esperado")
+            alert("Rendimiento global por debajo de lo esperado", type="error")
 
     with col2:
         st.metric("Media de Percentil", f"{mean_percentil:.1f}%")
@@ -443,7 +444,7 @@ def _render_export_section(patient_data: dict, sessions_data: list):
                 with open(pdf_path, "rb") as pdf_file:
                     pdf_bytes = pdf_file.read()
 
-                st.success(f"✅ Informe generado exitosamente")
+                alert("Informe generado exitosamente", type="success")
                 st.download_button(
                     label="⬇️ Descargar PDF",
                     data=pdf_bytes,
@@ -452,4 +453,4 @@ def _render_export_section(patient_data: dict, sessions_data: list):
                 )
 
             except Exception as e:
-                st.error(f"❌ Error al generar PDF: {str(e)}")
+                alert(f"Error al generar PDF: {str(e)}", type="error")

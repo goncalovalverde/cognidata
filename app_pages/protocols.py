@@ -14,7 +14,7 @@ from components.design_components import alert, header
 
 def render():
     """Render the protocols management page"""
-    header("📋 Gestión de Protocolos", "Crea y gestiona protocolos de evaluación neuropsicológica reutilizables")
+    header("<i class='ph ph-file-text'></i> Gestión de Protocolos", "Crea y gestiona protocolos de evaluación neuropsicológica reutilizables")
     st.markdown("---")
     
     # Initialize session state for UI
