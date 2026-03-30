@@ -13,24 +13,41 @@ Instead of relying on browser cookies (which had library compatibility issues), 
 
 ### Architecture
 
+**Login Flow:**
 ```
-User Login
+User enters credentials
     ↓
-1. Generate JWT token (24h validity)
-2. Store JWT token in st.session_state (in-memory, for current session)
-3. Create AuthSession record in database with:
-   - Token hash (SHA256 for security)
+1. Generate JWT token (24h validity, HS256 signed)
+2. Create AuthSession record in database:
+   - Token hash (SHA256, never plain text)
+   - Username
    - Expiration time
-   - Browser/client identifier
-   ↓
---- Page Reload ---
+   - Creation timestamp
+3. Store token in URL query parameter: ?auth_token=xxx
+4. User authenticated and logged in ✓
+```
+
+**Page Reload:**
+```
+Browser sends request with URL: ?auth_token=xxx
     ↓
 require_auth_with_persistence() checks:
-1. st.session_state.authenticated? → Use if valid (already in memory)
-2. st.session_state.auth_token? → Validate against database
-3. If valid session in DB → Restore authentication
-4. If expired or missing → Show login form
+1. st.session_state.authenticated? → Skip login (already in memory)
+2. st.query_params.get("auth_token")? → Found in URL!
+3. SessionManager.validate_token_in_session(token):
+   - Verify JWT signature (HS256)
+   - Check database for token hash
+   - Verify session is active
+   - Check expiration hasn't passed
+4. If all valid → Restore session (NO LOGIN NEEDED!)
+5. If any check fails → Show login form
 ```
+
+**Why URL Parameters?**
+- Streamlit loses st.session_state on every page reload
+- URL persists across reloads (always sent with request)
+- Simple solution without external dependencies
+- Token still validated against database for security
 
 ## Components Implemented
 
@@ -75,9 +92,26 @@ Modified auth functions:
 def login(username, password):
     # Existing login logic...
     token = JWTManager.generate_token(user)
-    st.session_state.auth_token = token  # Store in memory
     SessionManager.create_session(...)   # Store in database
+    st.query_params["auth_token"] = token  # Persist in URL!
     
+def require_auth_with_persistence():
+    # Check in order:
+    if st.session_state.authenticated:
+        return  # Already logged in
+    
+    token = st.query_params.get("auth_token")  # From URL!
+    if token and SessionManager.validate_token_in_session(token):
+        st.session_state.user = user
+        st.session_state.authenticated = True
+        return  # Session recovered!
+    
+    _render_login_form()  # Show login if no valid token
+
+def logout():
+    SessionManager.invalidate_session(token)
+    del st.query_params["auth_token"]  # Remove from URL
+```
 def require_auth_with_persistence():
     # Check if already authenticated in memory
     if st.session_state.authenticated:
@@ -176,19 +210,36 @@ st.session_state.authenticated = False
 
 ## Session Recovery Process
 
-When user reloads page with valid unexpired token in database:
+When user reloads page with valid unexpired token:
 
-1. `require_auth_with_persistence()` is called
-2. Checks `st.session_state.authenticated` (False after reload)
-3. Gets `st.session_state.auth_token` from session state
-4. Calls `SessionManager.validate_token_in_session(token)`
-5. Service validates JWT signature (JWTManager)
-6. Service queries database for token_hash
+1. `require_auth_with_persistence()` is called on app startup
+2. Checks `st.session_state.authenticated` (False after reload - lost in-memory state)
+3. Checks `st.query_params.get("auth_token")` (Persisted in URL! ✓)
+4. Calls `SessionManager.validate_token_in_session(token)` to verify
+5. Service validates JWT signature (HS256)
+6. Service queries database for token_hash to confirm session exists
 7. Checks if session is active and not expired
-8. If valid: restores user to st.session_state, continues
-9. If invalid: shows login form
+8. If all valid: restores user to st.session_state, continues without login form
+9. If any check fails: shows login form
 
-**Key insight**: The `auth_token` persists in `st.session_state` across reloads within the same browser tab because Streamlit preserves session state between page rebuilds. The database acts as a verification source to ensure the token is still valid.
+**Key Mechanism**: The auth token is stored in the **URL query parameter** (`?auth_token=xxx`), which persists across page reloads. This is the bridge between Streamlit's in-memory session state and persistent storage.
+
+**How URL Persistence Works**:
+- User logs in: URL becomes `http://localhost:8501/?auth_token=eyJ...`
+- User presses F5: Browser sends same URL to server
+- Streamlit receives URL with query parameters
+- `st.query_params["auth_token"]` is available in Python
+- Token is validated against database
+- Session restored if valid
+
+**Security Considerations**:
+✅ Token is hashed in database (not stored plain)
+✅ Token is signed with secret key (can't be forged)
+✅ Token expires after 24 hours (automatic)
+✅ Session validated against database (prevents token replay)
+⚠️ URL contains token (use HTTPS to prevent interception)
+⚠️ Browser history contains token (not suitable for shared computers)
+⚠️ If URL shared, anyone can access that session (same as sharing cookies)
 
 ## Testing
 
