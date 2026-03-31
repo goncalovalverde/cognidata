@@ -22,6 +22,8 @@ jobs:
       # 1. Descarrega o código do teu repositório para a pasta de trabalho do runner
       - name: 1. Obter código do repositório (Checkout)
         uses: actions/checkout@v4
+        with:
+          clean: false  # Evita limpar a pasta de trabalho para manter o ambiente virtual e logs entre deploys, acelerando o processo
 
       # 2. Configura o isolamento do Python de forma inteligente
       - name: 2. Preparar Ambiente Virtual (venv)
