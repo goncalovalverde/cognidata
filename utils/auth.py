@@ -1,10 +1,11 @@
 """
 Authentication module for CogniData
 Provides session-based authentication, role-based access control, and JWT-based session persistence
+Uses database-backed user authentication with bcrypt password hashing
 """
 
 import streamlit as st
-import hashlib
+import bcrypt
 import os
 from typing import Optional, List
 from dataclasses import dataclass
@@ -12,6 +13,8 @@ from datetime import datetime
 
 from services.audit import audit_service
 from utils.jwt_manager import JWTManager
+from database.connection import SessionLocal
+from models.user import User as DBUser, UserRole
 
 
 @dataclass
@@ -35,56 +38,48 @@ class Role:
 class AuthService:
     """
     Authentication service with role-based access control.
-
-    Default users (for demo purposes - in production, use proper user management):
-    - admin/admin123 (full access)
-    - clinician/clinical123 (can create tests, view reports)
-    - viewer/viewer123 (read-only access)
+    All users are stored in the database with bcrypt-hashed passwords.
     """
 
     def __init__(self):
-        self._users = self._load_users()
+        self._init_default_admin()
 
-    def _load_users(self) -> dict:
+    def _init_default_admin(self):
         """
-        Load users from environment variables or use defaults.
-        In production, this should load from a database.
+        Ensure at least one admin user exists.
+        Called on startup to initialize database if empty.
         """
-        users = {}
-
-        default_users = {
-            "admin": {
-                "password": "admin123",
-                "role": Role.ADMIN,
-                "full_name": "Administrador",
-            },
-            "clinician": {
-                "password": "clinical123",
-                "role": Role.CLINICIAN,
-                "full_name": " Clínico",
-            },
-            "viewer": {
-                "password": "viewer123",
-                "role": Role.VIEWER,
-                "full_name": "Observador",
-            },
-        }
-
-        for username, data in default_users.items():
-            env_password = os.getenv(f"AUTH_{username.upper()}_PASSWORD")
-            if env_password:
-                data["password"] = env_password
-            users[username] = data
-
-        return users
+        db = SessionLocal()
+        try:
+            admin_count = db.query(DBUser).filter(DBUser.role == UserRole.ADMIN).count()
+            if admin_count == 0:
+                # Check if ADMIN_PASSWORD env var is set
+                admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+                admin_hash = self._hash_password(admin_password)
+                
+                admin = DBUser(
+                    username="admin",
+                    password_hash=admin_hash,
+                    full_name="Administrator",
+                    role=UserRole.ADMIN,
+                    is_active=True,
+                )
+                db.add(admin)
+                db.commit()
+        finally:
+            db.close()
 
     def _hash_password(self, password: str) -> str:
-        """Hash password using SHA-256"""
-        return hashlib.sha256(password.encode()).hexdigest()
+        """Hash password using bcrypt"""
+        return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+    def _verify_password(self, password: str, password_hash: str) -> bool:
+        """Verify password against bcrypt hash"""
+        return bcrypt.checkpw(password.encode(), password_hash.encode())
 
     def authenticate(self, username: str, password: str) -> Optional[User]:
         """
-        Authenticate a user with username and password.
+        Authenticate a user with username and password from database.
 
         Args:
             username: The username
@@ -93,23 +88,35 @@ class AuthService:
         Returns:
             User object if authentication successful, None otherwise
         """
-        if username not in self._users:
-            return None
+        db = SessionLocal()
+        try:
+            db_user = db.query(DBUser).filter(
+                DBUser.username == username,
+                DBUser.is_active == True
+            ).first()
 
-        user_data = self._users[username]
-        password_hash = self._hash_password(password)
+            if not db_user:
+                return None
 
-        expected_hash = self._hash_password(user_data["password"])
+            if not self._verify_password(password, db_user.password_hash):
+                return None
 
-        if password_hash != expected_hash:
-            return None
+            # Map database role to internal role name
+            role_map = {
+                "Admin": "admin",
+                "Practitioner": "clinician",
+                "Viewer": "viewer",
+            }
+            internal_role = role_map.get(db_user.role.value, db_user.role.value)
 
-        return User(
-            username=username,
-            role=user_data["role"],
-            full_name=user_data.get("full_name", username),
-            created_at=datetime.utcnow(),
-        )
+            return User(
+                username=db_user.username,
+                role=internal_role,
+                full_name=db_user.full_name or db_user.username,
+                created_at=db_user.created_at,
+            )
+        finally:
+            db.close()
 
     def has_permission(self, user: User, required_role: str) -> bool:
         """
@@ -118,28 +125,42 @@ class AuthService:
         Role hierarchy:
         admin > clinician > viewer
         """
+        # Map database role names to internal role names
+        role_map = {
+            "Admin": "admin",
+            "Practitioner": "clinician",
+            "Viewer": "viewer",
+            "admin": "admin",
+            "clinician": "clinician",
+            "viewer": "viewer",
+        }
+        
         role_hierarchy = {
-            Role.VIEWER: 0,
-            Role.CLINICIAN: 1,
-            Role.ADMIN: 2,
+            "viewer": 0,
+            "clinician": 1,
+            "admin": 2,
         }
 
-        user_level = role_hierarchy.get(user.role, 0)
-        required_level = role_hierarchy.get(required_role, 0)
+        user_role = role_map.get(user.role, user.role)
+        required_role_mapped = role_map.get(required_role, required_role)
+        
+        user_level = role_hierarchy.get(user_role, 0)
+        required_level = role_hierarchy.get(required_role_mapped, 0)
 
         return user_level >= required_level
 
     def can_delete(self, user: User) -> bool:
         """Check if user can delete data"""
-        return user.role == Role.ADMIN
+        return user.role.lower() == Role.ADMIN.lower()
 
     def can_create_test(self, user: User) -> bool:
         """Check if user can create tests"""
-        return user.role in [Role.ADMIN, Role.CLINICIAN]
+        user_role = user.role.lower()
+        return user_role in [Role.ADMIN.lower(), Role.CLINICIAN.lower()]
 
     def can_view_reports(self, user: User) -> bool:
         """Check if user can view reports"""
-        return user.role in [Role.ADMIN, Role.CLINICIAN, Role.VIEWER]
+        return True  # All authenticated users can view reports
 
 
 auth_service = AuthService()
