@@ -1,22 +1,21 @@
 """
 User service for managing users and authentication
+Uses bcrypt directly for password hashing (passlib had compatibility issues)
 """
 
-from passlib.context import CryptContext
+import bcrypt
 from database.connection import SessionLocal
 from models import User, UserRole
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_password(password: str) -> str:
-    """Hash a password"""
-    return pwd_context.hash(password)
+    """Hash a password using bcrypt"""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify a password against its bcrypt hash"""
+    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
 
 
 def get_user(username: str) -> User:

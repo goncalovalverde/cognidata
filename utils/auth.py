@@ -42,7 +42,36 @@ class AuthService:
     """
 
     def __init__(self):
-        self._init_default_admin()
+        pass  # Defer admin initialization to first authenticate call
+
+    def _ensure_admin_exists(self):
+        """
+        Ensure at least one admin user exists.
+        Called lazily on first authentication attempt to avoid
+        import-time database access.
+        """
+        db = SessionLocal()
+        try:
+            admin_count = db.query(DBUser).filter(DBUser.role == UserRole.ADMIN).count()
+            if admin_count == 0:
+                # Check if ADMIN_PASSWORD env var is set
+                admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+                admin_hash = self._hash_password(admin_password)
+                
+                admin = DBUser(
+                    username="admin",
+                    password_hash=admin_hash,
+                    full_name="Administrator",
+                    role=UserRole.ADMIN,
+                    is_active=True,
+                )
+                db.add(admin)
+                db.commit()
+        except Exception as e:
+            # Silently fail if table doesn't exist yet (will be created on init_db)
+            pass
+        finally:
+            db.close()
 
     def _init_default_admin(self):
         """
@@ -88,6 +117,10 @@ class AuthService:
         Returns:
             User object if authentication successful, None otherwise
         """
+        # Ensure admin user exists on first authentication attempt
+        # (deferred from __init__ to avoid issues with table creation)
+        self._ensure_admin_exists()
+        
         db = SessionLocal()
         try:
             db_user = db.query(DBUser).filter(
