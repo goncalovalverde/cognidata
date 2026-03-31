@@ -406,39 +406,6 @@ def _render_login_form():
         border-left: 4px solid !important;
     }}
     
-    /* Demo users expander */
-    .demo-credentials {{
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid #E0E0E0;
-    }}
-    
-    .demo-credentials details {{
-        cursor: pointer;
-    }}
-    
-    .demo-credentials summary {{
-        color: {COLORS['text_light']};
-        font-size: 12px;
-        font-weight: 500;
-        outline: none;
-    }}
-    
-    .demo-credentials summary:hover {{
-        color: {COLORS['primary']};
-    }}
-    
-    .demo-code {{
-        background: #F5F5F5;
-        border: 1px solid #E0E0E0;
-        border-radius: 6px;
-        padding: 12px;
-        margin-top: 12px;
-        font-size: 11px;
-        text-align: left;
-        font-family: 'Monaco', 'Courier New', monospace;
-    }}
-    
     /* Override form container width */
     .stForm {{
         max-width: 100% !important;
@@ -509,20 +476,7 @@ def _render_login_form():
                     
                     if attempts >= 5:
                         st.warning("⏱️ Demasiados intentos. Por favor, espera un momento.")
-        
-        # Demo credentials in expandable section
-        st.markdown("""
-        <div class="demo-credentials">
-        <details>
-        <summary>📝 Usuarios de prueba disponibles</summary>
-        <div class="demo-code">
-admin / admin123<br>
-clinician / clinical123<br>
-viewer / viewer123
-        </div>
-        </details>
-        </div>
-        """, unsafe_allow_html=True)
+
 
 
 def render_user_menu():
