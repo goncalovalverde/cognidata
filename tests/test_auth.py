@@ -3,6 +3,7 @@ Unit tests for authentication module
 """
 
 import pytest
+import os
 from unittest.mock import patch, MagicMock
 from utils.auth import (
     AuthService,
@@ -16,18 +17,30 @@ from utils.auth import (
 )
 
 
+@pytest.fixture(scope="function", autouse=True)
+def setup_env_vars():
+    """Setup required environment variables for tests"""
+    # Set admin password from env or use test default
+    if "ADMIN_PASSWORD" not in os.environ:
+        os.environ["ADMIN_PASSWORD"] = "TestAdminPass123!"
+    yield
+    # Cleanup is handled by pytest
+
+
 class TestAuthService:
     """Tests for AuthService class"""
 
     def test_authenticate_valid_admin(self):
         """Test authentication with valid admin credentials"""
         service = AuthService()
-        user = service.authenticate("admin", "admin123")
+        # Use password from environment variable (or test default from fixture)
+        admin_password = os.environ.get("ADMIN_PASSWORD", "TestAdminPass123!")
+        user = service.authenticate("admin", admin_password)
 
         assert user is not None
         assert user.username == "admin"
         assert user.role == Role.ADMIN
-        assert user.full_name == "Administrador"
+        assert user.full_name == "Administrator"
 
     def test_authenticate_valid_clinician(self):
         """Test authentication with valid clinician credentials"""
@@ -57,6 +70,7 @@ class TestAuthService:
     def test_authenticate_invalid_password(self):
         """Test authentication with invalid password"""
         service = AuthService()
+        admin_password = os.environ.get("ADMIN_PASSWORD", "TestAdminPass123!")
         user = service.authenticate("admin", "wrongpassword")
 
         assert user is None

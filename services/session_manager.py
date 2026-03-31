@@ -114,7 +114,65 @@ class SessionManager:
             db.close()
     
     @staticmethod
-    def get_valid_session(username: str, client_id: Optional[str] = None) -> Optional[dict]:
+    def get_session_by_id(session_id: str) -> Optional[dict]:
+        """
+        Get session data by session_id.
+        Used for security-focused session recovery (not token-based).
+        
+        Args:
+            session_id: The session identifier
+            
+        Returns:
+            Dict with session data if valid, None otherwise
+        """
+        db = SessionLocal()
+        try:
+            session = db.query(AuthSession).filter(
+                AuthSession.session_id == session_id
+            ).first()
+            
+            if session and session.is_valid and session.is_active:
+                session.refresh_access_time()
+                db.commit()
+                
+                return {
+                    "session_id": session.session_id,
+                    "username": session.username,
+                    "is_active": session.is_active,
+                    "token_expires_at": session.token_expires_at,
+                    "created_at": session.created_at,
+                    "client_id": session.client_id,
+                }
+            
+            return None
+        finally:
+            db.close()
+    
+    @staticmethod
+    def invalidate_session_by_id(session_id: str) -> bool:
+        """
+        Invalidate a session by session_id (logout).
+        Uses session_id instead of token for better security.
+        
+        Args:
+            session_id: The session identifier
+            
+        Returns:
+            True if session was invalidated, False if not found
+        """
+        db = SessionLocal()
+        try:
+            session = db.query(AuthSession).filter(
+                AuthSession.session_id == session_id
+            ).first()
+            
+            if session:
+                session.is_active = False
+                db.commit()
+                return True
+            return False
+        finally:
+            db.close()
         """
         Retrieve a valid session for a user.
         

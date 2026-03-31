@@ -7,6 +7,7 @@ Uses database-backed user authentication with bcrypt password hashing
 import streamlit as st
 import bcrypt
 import os
+import sys
 from typing import Optional, List
 from dataclasses import dataclass
 from datetime import datetime
@@ -49,13 +50,28 @@ class AuthService:
         Ensure at least one admin user exists.
         Called lazily on first authentication attempt to avoid
         import-time database access.
+        
+        CRITICAL: Admin password MUST be provided via ADMIN_PASSWORD environment variable.
+        This prevents default credentials vulnerability (GDPR Article 32).
         """
         db = SessionLocal()
         try:
             admin_count = db.query(DBUser).filter(DBUser.role == UserRole.ADMIN).count()
             if admin_count == 0:
-                # Check if ADMIN_PASSWORD env var is set
-                admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+                # CRITICAL FIX: Require ADMIN_PASSWORD environment variable
+                admin_password = os.getenv("ADMIN_PASSWORD")
+                if not admin_password:
+                    print(
+                        "FATAL: ADMIN_PASSWORD environment variable is not set\n"
+                        "CogniData requires a secure admin password to be set before first use.\n\n"
+                        "Set a strong password (12+ chars, mixed case, numbers, special chars):\n"
+                        "  export ADMIN_PASSWORD='your_secure_password'\n\n"
+                        "Then restart the application.\n\n"
+                        "For production, store this in a secure vault (AWS Secrets Manager, Azure Key Vault, etc.)",
+                        file=sys.stderr
+                    )
+                    sys.exit(1)
+                
                 admin_hash = self._hash_password(admin_password)
                 
                 admin = DBUser(
@@ -77,13 +93,28 @@ class AuthService:
         """
         Ensure at least one admin user exists.
         Called on startup to initialize database if empty.
+        
+        CRITICAL: Admin password MUST be provided via ADMIN_PASSWORD environment variable.
+        This prevents default credentials vulnerability (GDPR Article 32).
         """
         db = SessionLocal()
         try:
             admin_count = db.query(DBUser).filter(DBUser.role == UserRole.ADMIN).count()
             if admin_count == 0:
-                # Check if ADMIN_PASSWORD env var is set
-                admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+                # CRITICAL FIX: Require ADMIN_PASSWORD environment variable
+                admin_password = os.getenv("ADMIN_PASSWORD")
+                if not admin_password:
+                    print(
+                        "FATAL: ADMIN_PASSWORD environment variable is not set\n"
+                        "CogniData requires a secure admin password to be set before first use.\n\n"
+                        "Set a strong password (12+ chars, mixed case, numbers, special chars):\n"
+                        "  export ADMIN_PASSWORD='your_secure_password'\n\n"
+                        "Then restart the application.\n\n"
+                        "For production, store this in a secure vault (AWS Secrets Manager, Azure Key Vault, etc.)",
+                        file=sys.stderr
+                    )
+                    sys.exit(1)
+                
                 admin_hash = self._hash_password(admin_password)
                 
                 admin = DBUser(
@@ -223,15 +254,22 @@ def require_auth():
 
 def require_auth_with_persistence():
     """
-    Require authentication with session persistence via database + query parameters.
+    Require authentication with session persistence via database + secure session ID.
+    
+    CRITICAL FIX: Tokens are NO LONGER stored in URL query parameters.
+    Instead, only a session_id is stored in Streamlit session state and database.
+    The actual JWT token remains server-side only.
+    
+    This prevents token exposure in:
+    - Browser history
+    - Server access logs
+    - Referer headers
+    - Browser autocomplete
     
     Checks authentication in this order:
     1. st.session_state.authenticated (in-memory session from current run)
-    2. Query parameter 'auth_token' (persisted across reloads)
-    3. Database session record (validate against database)
-    4. Shows login form if none exist
-    
-    This allows users to stay logged in across page reloads.
+    2. Database session record (validate session_id)
+    3. Shows login form if none exist
     """
     from services.session_manager import SessionManager
     
@@ -241,21 +279,23 @@ def require_auth_with_persistence():
     if st.session_state.authenticated:
         return
     
-    # Try to recover token from URL query parameters
-    # This is set when user logs in - token persists in URL across reloads
-    token = st.query_params.get("auth_token")
-    if not token:
-        # Fallback: check session state (in case token was set earlier in this run)
-        token = st.session_state.get("auth_token")
-    
-    if token:
-        user = SessionManager.validate_token_in_session(token)
-        if user:
-            # Token is valid in database - restore session
-            st.session_state.user = user
-            st.session_state.authenticated = True
-            st.session_state.auth_token = token
-            return
+    # Try to restore session from database using session_id
+    # (NOT from URL token - this is the critical security fix)
+    session_id = st.session_state.get("session_id")
+    if session_id:
+        session_record = SessionManager.get_session_by_id(session_id)
+        if session_record:
+            # Validate session is still valid
+            if session_record.is_valid and session_record.is_active:
+                user = User(
+                    username=session_record.username,
+                    role=session_record.get("role", "viewer"),
+                    full_name=session_record.get("full_name", "")
+                )
+                st.session_state.user = user
+                st.session_state.authenticated = True
+                st.session_state.session_id = session_id
+                return
     
     # No valid session - show login form
     _render_login_form()
@@ -278,6 +318,11 @@ def require_role(required_role: str):
 def login(username: str, password: str) -> bool:
     """
     Attempt to log in a user.
+    
+    CRITICAL FIX: JWT tokens are NO LONGER stored in URL query parameters.
+    Instead, creates a server-side session with a session_id.
+    
+    This prevents token exposure via browser history, logs, etc.
 
     Returns:
         True if login successful, False otherwise
@@ -292,21 +337,20 @@ def login(username: str, password: str) -> bool:
         st.session_state.authenticated = True
         st.session_state.login_attempts = 0
         
-        # Generate JWT token and create server-side session
+        # Generate JWT token (kept server-side only, NOT in URL)
         token = JWTManager.generate_token(user)
-        st.session_state.auth_token = token
         
-        # Create database session record for validation
+        # Create database session record with session_id
         token_expires_at = datetime.utcnow() + timedelta(hours=JWTManager.EXPIRATION_HOURS)
-        SessionManager.create_session(
+        session_record = SessionManager.create_session(
             user=user,
             token=token,
             token_expires_at=token_expires_at,
         )
         
-        # IMPORTANT: Store token in URL query parameters so it persists across reloads
-        # This is the key to session persistence - the URL includes the token
-        st.query_params["auth_token"] = token
+        # Store ONLY the session_id in session state, NOT the token
+        # This is the critical security fix - token never leaves server
+        st.session_state.session_id = session_record.session_id
         
         audit_service.log(
             action="auth.login",
@@ -316,6 +360,18 @@ def login(username: str, password: str) -> bool:
         return True
 
     st.session_state.login_attempts += 1
+    
+    # Log failed authentication attempt
+    audit_service.log(
+        action="auth.login_failed",
+        resource_type="system",
+        details={
+            "username": username,
+            "attempt_number": st.session_state.login_attempts,
+            "reason": "invalid_credentials"
+        },
+    )
+    
     return False
 
 
@@ -330,16 +386,20 @@ def logout():
             details={"username": st.session_state.user.username},
         )
         
-        # Invalidate database session
-        token = st.session_state.get("auth_token")
-        if token:
-            SessionManager.invalidate_session(token)
+        # Invalidate database session using session_id (NOT token)
+        session_id = st.session_state.get("session_id")
+        if session_id:
+            SessionManager.invalidate_session_by_id(session_id)
 
     st.session_state.user = None
     st.session_state.authenticated = False
-    st.session_state.auth_token = None
+    st.session_state.session_id = None
     
-    # Remove token from URL query parameters
+    # Clean up old auth_token if it exists (legacy)
+    if "auth_token" in st.session_state:
+        del st.session_state["auth_token"]
+    
+    # Remove token from URL query parameters (legacy cleanup)
     if "auth_token" in st.query_params:
         del st.query_params["auth_token"]
 
