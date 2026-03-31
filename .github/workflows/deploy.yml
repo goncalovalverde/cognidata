@@ -60,7 +60,7 @@ jobs:
           # - --server.headless true: Evita erros ao impedir que a app tente abrir um browser no servidor
           # - > streamlit_output.log 2>&1: Redireciona mensagens e erros para um ficheiro de registo (log)
           # - &: Coloca o comando a correr em pano de fundo
-          nohup $(pwd)/venv/bin/streamlit run main.py \
+          nohup $(pwd)/venv/bin/streamlit run app.py \
             --server.port 8501 \
             --server.address 0.0.0.0 \
             --server.headless true > streamlit_output.log 2>&1 &
