@@ -248,3 +248,56 @@ Para preguntas o mejoras, consulta `USAGE.md` o el plan técnico.
 ---
 
 **¡Listo para usar! 🚀**
+
+---
+
+## 🔒 Critical Security Fixes (v1.0.1)
+
+**IMPORTANT: Read before deploying!**
+
+This release includes 4 critical security fixes (GDPR Article 32 compliant).
+You **MUST** set 2 environment variables before running the application.
+
+### ⚡ Quick Setup
+
+```bash
+# 1. Generate JWT secret
+export AUTH_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
+
+# 2. Set admin password
+export ADMIN_PASSWORD='YourSecurePassword123!'
+
+# 3. Update dependencies
+pip install -r requirements.txt
+
+# 4. Run
+streamlit run app.py
+```
+
+### 🔐 What Was Fixed
+
+| Issue | Impact | Status |
+|-------|--------|--------|
+| Hardcoded JWT secret | Authentication bypass | ✅ FIXED |
+| Hardcoded admin password "admin123" | Default credential attacks | ✅ FIXED |
+| JWT tokens in URL | Token exposure in logs/history | ✅ FIXED |
+| Unmaintained passlib library | No security patches | ✅ FIXED |
+
+### 📚 Documentation
+
+- **CRITICAL_FIXES_QUICKSTART.md** - 5-minute setup guide
+- **SECURITY_FIXES.md** - Comprehensive fix documentation
+- **COMPLIANCE_AUDIT.md** - Full security audit (24 issues)
+
+### ⚠️ Breaking Changes
+
+None - no database schema changes, backward compatible.
+
+### 🎯 Next Steps
+
+Address HIGH priority issues (see COMPLIANCE_AUDIT.md):
+- Data encryption at rest
+- Data retention/TTL policy
+- Backup file encryption
+- HTTPS/TLS enforcement
+
