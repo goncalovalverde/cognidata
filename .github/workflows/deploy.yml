@@ -37,9 +37,9 @@ jobs:
           # se ele já estiver no teu requirements.txt. 
           # O pip é inteligente: se a versão já estiver lá, ele diz "Requirement already satisfied".
           if [ -f requirements.txt ]; then 
-            ./venv/bin/pip install -r requirements.txt --quiet
+            ./venv/bin/pip install -r requirements.txt 
           else
-            ./venv/bin/pip install streamlit --quiet
+            ./venv/bin/pip install streamlit
           fi
 
       # 3. Faz a gestão dos processos para garantir que a app antiga para e a nova arranca
