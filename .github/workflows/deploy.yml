@@ -23,23 +23,23 @@ jobs:
       - name: 1. Obter código do repositório (Checkout)
         uses: actions/checkout@v4
 
-      # 2. Configura o isolamento do Python para não interferir com o sistema da Orange Pi
+      # 2. Configura o isolamento do Python de forma inteligente
       - name: 2. Preparar Ambiente Virtual (venv)
         run: |
-          # Verifica se a diretoria 'venv' já existe; se não existir, cria uma nova
+          # 1. Cria o venv apenas se não existir.
           if [ ! -d "venv" ]; then
             python3 -m venv venv
+            # Só atualiza o pip na criação para poupar tempo nos próximos deploys
+            ./venv/bin/pip install --upgrade pip
           fi
           
-          # Atualiza o gestor de pacotes 'pip' dentro do ambiente virtual
-          ./venv/bin/pip install --upgrade pip
-          
-          # Garante que a biblioteca Streamlit está presente
-          ./venv/bin/pip install streamlit
-          
-          # Instala as restantes dependências listadas no teu ficheiro requirements.txt
+          # 2. Usa a flag --quiet e remove o install individual do streamlit 
+          # se ele já estiver no teu requirements.txt. 
+          # O pip é inteligente: se a versão já estiver lá, ele diz "Requirement already satisfied".
           if [ -f requirements.txt ]; then 
-            ./venv/bin/pip install -r requirements.txt
+            ./venv/bin/pip install -r requirements.txt --quiet
+          else
+            ./venv/bin/pip install streamlit --quiet
           fi
 
       # 3. Faz a gestão dos processos para garantir que a app antiga para e a nova arranca
