@@ -1,51 +1,83 @@
-name: Deploy Streamlit App (Manual/Venv)
+name: Deploy Streamlit App (Português de Portugal)
 
-# Gatilhos: Corre automaticamente no push para a master ou manualmente pelo botão
+# Define os gatilhos (triggers) da automação
 on:
   push:
+    # Ativa o deploy sempre que envias código para o ramo 'master'
     branches: [ "master" ]
+  # Permite que executes o deploy manualmente através do botão "Run workflow" no GitHub
   workflow_dispatch:
 
 jobs:
   deploy:
-    # Este nome deve coincidir com a label do teu runner na Orange Pi
+    # Indica que este trabalho deve correr no teu runner local instalado na Orange Pi
     runs-on: self-hosted
+    
+    # Define variáveis de ambiente globais para o job
+    env:
+      # Força o uso do Node.js 24 para evitar avisos de obsolescência (obrigatório em Junho 2026)
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - name: 1. Checkout do código
+      # 1. Descarrega o código do teu repositório para a pasta de trabalho do runner
+      - name: 1. Obter código do repositório (Checkout)
         uses: actions/checkout@v4
 
-      - name: 2. Configurar Ambiente Virtual (venv)
+      # 2. Configura o isolamento do Python para não interferir com o sistema da Orange Pi
+      - name: 2. Preparar Ambiente Virtual (venv)
         run: |
-          # Se o venv não existir na pasta do runner, cria-o
+          # Verifica se a diretoria 'venv' já existe; se não existir, cria uma nova
           if [ ! -d "venv" ]; then
             python3 -m venv venv
           fi
-          # Atualiza o pip e instala o Streamlit + dependências
+          
+          # Atualiza o gestor de pacotes 'pip' dentro do ambiente virtual
           ./venv/bin/pip install --upgrade pip
+          
+          # Garante que a biblioteca Streamlit está presente
           ./venv/bin/pip install streamlit
+          
+          # Instala as restantes dependências listadas no teu ficheiro requirements.txt
           if [ -f requirements.txt ]; then 
             ./venv/bin/pip install -r requirements.txt
           fi
 
-      - name: 3. Limpar porta e Lançar Streamlit
+      # 3. Faz a gestão dos processos para garantir que a app antiga para e a nova arranca
+      - name: 3. Terminar versão antiga e lançar nova app
+        env:
+          # MUITO IMPORTANTE: Define o ID de rastreio como vazio.
+          # Isto impede que o GitHub mate o processo do Streamlit quando a pipeline termina.
+          RUNNER_TRACKING_ID: ""
         run: |
-          # Tenta libertar a porta 8501 se a app antiga estiver a correr
-          # O "|| true" garante que a pipeline não falha se a porta já estiver livre
+          # O comando 'fuser -k' força o fecho de qualquer processo que use a porta 8501
+          # O '|| true' serve para a pipeline não dar erro se a porta já estiver livre
           fuser -k 8501/tcp || true
           
-          # Lança a app em background
-          # --server.address 0.0.0.0 permite acesso externo/rede
-          nohup ./venv/bin/streamlit run app.py \
+          # Lança o Streamlit em segundo plano (background):
+          # - nohup: Garante que a app não vai abaixo quando o runner termina a tarefa
+          # - --server.port 8501: Define a porta onde a app vai "escutar"
+          # - --server.address 0.0.0.0: Permite o acesso através do teu IP local ou túnel externo
+          # - --server.headless true: Evita erros ao impedir que a app tente abrir um browser no servidor
+          # - > streamlit_output.log 2>&1: Redireciona mensagens e erros para um ficheiro de registo (log)
+          # - &: Coloca o comando a correr em pano de fundo
+          nohup $(pwd)/venv/bin/streamlit run main.py \
             --server.port 8501 \
             --server.address 0.0.0.0 \
             --server.headless true > streamlit_output.log 2>&1 &
           
-          # Disown liberta o processo do shell do runner para ele não morrer
+          # Desvincula o processo da shell atual para que ele sobreviva de forma independente
           disown
+          echo "Deploy concluído. A iniciar verificação de estabilidade..."
 
-      - name: 4. Verificar Status
+      # 4. Confirmação de segurança para validar se a aplicação arrancou corretamente
+      - name: 4. Validar estado da aplicação
         run: |
+          # Aguarda 5 segundos para permitir que o Streamlit carregue totalmente
           sleep 5
-          ps aux | grep streamlit | grep -v grep
-          echo "App a correr. Logs disponíveis em streamlit_output.log"
+          # Verifica se existe algum processo 'streamlit' ativo no sistema
+          if pgrep -f streamlit > /dev/null; then
+            echo "SUCESSO: A aplicação está ativa e pronta a ser acedida."
+          else
+            echo "ERRO: O Streamlit não arrancou. Consulta o ficheiro streamlit_output.log para detalhes."
+            exit 1
+          fi
