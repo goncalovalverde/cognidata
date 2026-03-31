@@ -27,7 +27,7 @@ def render():
         if not patients:
             alert(
                 "No hay pacientes registrados. Crea uno primero en la sección 'Pacientes'.",
-                type="warning"
+                alert_type="warning"
             )
         else:
             patient_options = {f"{p.id[:8]}... ({p.age} años)": p.id for p in patients}

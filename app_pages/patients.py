@@ -64,7 +64,7 @@ def _render_patient_list():
         else:
             alert(
                 "No hay pacientes registrados. Crea uno en la pestaña 'Nuevo Paciente'", 
-                type="info"
+                alert_type="info"
             )
     finally:
         db.close()
