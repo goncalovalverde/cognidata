@@ -8,15 +8,24 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Get database URL from environment or use default
-# For production: set DATABASE_URL=/var/lib/cognidata/cognidata.db or similar
+# For production: set DATABASE_PATH=/var/lib/cognidata/cognidata.db or similar
 DATABASE_PATH = os.getenv("DATABASE_PATH", "cognidata.db")
-DATABASE_URL = f"sqlite:///./{DATABASE_PATH}"
+
+# SQLite URL format: sqlite:///relative/path or sqlite:////absolute/path
+if os.path.isabs(DATABASE_PATH):
+    DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+else:
+    DATABASE_URL = f"sqlite:///./{ DATABASE_PATH}"
 
 # Ensure database directory exists if using an absolute path
 if DATABASE_PATH.startswith("/") and "/" in DATABASE_PATH:
     db_dir = os.path.dirname(DATABASE_PATH)
     if db_dir and not os.path.exists(db_dir):
-        os.makedirs(db_dir, exist_ok=True)
+        try:
+            os.makedirs(db_dir, exist_ok=True)
+        except (OSError, PermissionError) as e:
+            print(f"Warning: Could not create database directory {db_dir}: {e}")
+            print(f"Will attempt to create at runtime if needed")
 
 engine = create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False}, echo=False
