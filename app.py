@@ -5,6 +5,13 @@ Streamlit App para gestión de tests y cálculo de normas NEURONORMA
 Modular architecture with authentication and role-based access control.
 """
 
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env.local (if it exists)
+# This must be done BEFORE any other imports that use os.getenv()
+load_dotenv('.env.local')
+
 import streamlit as st
 from streamlit_option_menu import option_menu
 
