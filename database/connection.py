@@ -7,7 +7,16 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./cognidata.db")
+# Get database URL from environment or use default
+# For production: set DATABASE_URL=/var/lib/cognidata/cognidata.db or similar
+DATABASE_PATH = os.getenv("DATABASE_PATH", "cognidata.db")
+DATABASE_URL = f"sqlite:///./{DATABASE_PATH}"
+
+# Ensure database directory exists if using an absolute path
+if DATABASE_PATH.startswith("/") and "/" in DATABASE_PATH:
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
 
 engine = create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False}, echo=False

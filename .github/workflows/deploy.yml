@@ -10,10 +10,24 @@ jobs:
     runs-on: self-hosted
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      DATABASE_PATH: /home/dietpi/cognidata/cognidata.db
 
     steps:
       - name: 1. Obter código (O Git pode limpar à vontade agora)
         uses: actions/checkout@v4
+
+      - name: 1.5. Verificar e criar diretório de dados se necessário
+        run: |
+          if [ ! -d "/home/dietpi/cognidata" ]; then
+            echo "Diretório de dados não existe, criando..."
+            mkdir -p /home/dietpi/cognidata
+            echo "✓ Diretório criado: /home/dietpi/cognidata"
+          else
+            echo "✓ Diretório de dados já existe"
+            if [ -f "/home/dietpi/cognidata/cognidata.db" ]; then
+              echo "✓ Database encontrada, dados serão preservados"
+            fi
+          fi
 
       - name: 2. Atualizar dependências no Venv Fixo
         run: |
@@ -32,6 +46,7 @@ jobs:
           fuser -k 8501/tcp || true
           
           # Lançar usando o python do venv externo
+          # DATABASE_PATH está definido acima como environment variable
           nohup ~/streamlit_venv/bin/streamlit run app.py \
             --server.port 8501 \
             --server.address 0.0.0.0 \
@@ -39,6 +54,7 @@ jobs:
           
           disown
           echo "Deploy concluído com venv persistente."
+          echo "Database localizado em: $DATABASE_PATH"
 
       - name: 4. Validar estado
         run: |
