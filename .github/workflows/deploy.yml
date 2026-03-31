@@ -2,7 +2,7 @@ name: Deploy Streamlit App (Venv Externo)
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
