@@ -30,6 +30,8 @@ data/test_images/
 
 # Entorno
 .env
+.env.local
+.env.*.local
 
 # OS
 .DS_Store

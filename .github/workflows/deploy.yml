@@ -38,15 +38,27 @@ jobs:
             ~/streamlit_venv/bin/pip install -r requirements.txt --quiet
           fi
 
-      - name: 3. Lançar App
+      - name: 3. Validar Secrets
+        run: |
+          if [ -z "${{ secrets.ADMIN_PASSWORD }}" ] || [ -z "${{ secrets.AUTH_SECRET_KEY }}" ]; then
+            echo "ERROR: Missing required GitHub Secrets"
+            echo "Please configure ADMIN_PASSWORD and AUTH_SECRET_KEY in:"
+            echo "  Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          echo "✓ Secrets validados (valores mascarados nos logs)"
+
+      - name: 4. Lançar App
         env:
           RUNNER_TRACKING_ID: ""
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          AUTH_SECRET_KEY: ${{ secrets.AUTH_SECRET_KEY }}
         run: |
           # Libertar a porta 8501
           fuser -k 8501/tcp || true
           
           # Lançar usando o python do venv externo
-          # DATABASE_PATH está definido acima como environment variable
+          # ADMIN_PASSWORD e AUTH_SECRET_KEY carregados de GitHub Secrets
           nohup ~/streamlit_venv/bin/streamlit run app.py \
             --server.port 8501 \
             --server.address 0.0.0.0 \
@@ -55,8 +67,9 @@ jobs:
           disown
           echo "Deploy concluído com venv persistente."
           echo "Database localizado em: $DATABASE_PATH"
+          echo "✓ Secrets carregados do GitHub (valores mascarados nos logs)"
 
-      - name: 4. Validar estado
+      - name: 5. Validar estado
         run: |
           sleep 5
-          pgrep -f streamlit > /dev/null && echo "App online!" || exit 1
+          pgrep -f streamlit > /dev/null && echo "✓ App online!" || exit 1
