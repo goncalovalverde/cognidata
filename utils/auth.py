@@ -256,46 +256,54 @@ def require_auth_with_persistence():
     """
     Require authentication with session persistence via database + secure session ID.
     
-    CRITICAL FIX: Tokens are NO LONGER stored in URL query parameters.
-    Instead, only a session_id is stored in Streamlit session state and database.
+    CRITICAL FIX: session_id is stored in URL query parameter to survive page reloads.
     The actual JWT token remains server-side only.
     
     This prevents token exposure in:
-    - Browser history
-    - Server access logs
-    - Referer headers
-    - Browser autocomplete
+    - Browser history (no token, just session_id)
+    - Server access logs (no token)
+    - Referer headers (no token)
+    - Browser autocomplete (no token)
     
     Checks authentication in this order:
     1. st.session_state.authenticated (in-memory session from current run)
-    2. Database session record (validate session_id)
-    3. Shows login form if none exist
+    2. URL query parameter session_id (survives page reloads)
+    3. Database session record (validate session_id)
+    4. Shows login form if none exist
     """
     from services.session_manager import SessionManager
     
     init_auth_state()
     
-    # Already authenticated in memory
+    # Already authenticated in memory (current page run)
     if st.session_state.authenticated:
         return
     
-    # Try to restore session from database using session_id
-    # (NOT from URL token - this is the critical security fix)
+    # Try to get session_id from multiple sources
     session_id = st.session_state.get("session_id")
+    
+    # If not in session state, try to get from URL query parameter
+    # This allows session to survive page reloads (F5, browser reload)
+    if not session_id:
+        from streamlit import query_params
+        session_id = query_params.get("session_id", None)
+        if isinstance(session_id, list):
+            session_id = session_id[0]  # Handle list response from query_params
+    
+    # Try to restore session from database using session_id
     if session_id:
         session_record = SessionManager.get_session_by_id(session_id)
-        if session_record:
-            # Validate session is still valid
-            if session_record.is_valid and session_record.is_active:
-                user = User(
-                    username=session_record.username,
-                    role=session_record.get("role", "viewer"),
-                    full_name=session_record.get("full_name", "")
-                )
-                st.session_state.user = user
-                st.session_state.authenticated = True
-                st.session_state.session_id = session_id
-                return
+        if session_record and session_record.is_valid and session_record.is_active:
+            # Valid session found in database - restore it
+            user = User(
+                username=session_record.username,
+                role=session_record.get("role", "viewer"),
+                full_name=session_record.get("full_name", "")
+            )
+            st.session_state.user = user
+            st.session_state.authenticated = True
+            st.session_state.session_id = session_id
+            return
     
     # No valid session - show login form
     _render_login_form()
@@ -320,9 +328,11 @@ def login(username: str, password: str) -> bool:
     Attempt to log in a user.
     
     CRITICAL FIX: JWT tokens are NO LONGER stored in URL query parameters.
-    Instead, creates a server-side session with a session_id.
+    Instead, session_id is stored in URL as query parameter (safe to expose).
+    The actual JWT token is kept server-side only.
     
     This prevents token exposure via browser history, logs, etc.
+    Session persists across page reloads via URL query parameter.
 
     Returns:
         True if login successful, False otherwise
@@ -348,9 +358,14 @@ def login(username: str, password: str) -> bool:
             token_expires_at=token_expires_at,
         )
         
-        # Store ONLY the session_id in session state, NOT the token
-        # This is the critical security fix - token never leaves server
-        st.session_state.session_id = session_record.session_id
+        # Store session_id in both session state and URL query parameter
+        # URL parameter allows session to survive page reloads
+        session_id = session_record.session_id
+        st.session_state.session_id = session_id
+        
+        # Add session_id to URL query parameter for persistence across reloads
+        from streamlit import query_params
+        query_params["session_id"] = session_id
         
         audit_service.log(
             action="auth.login",
@@ -394,6 +409,11 @@ def logout():
     st.session_state.user = None
     st.session_state.authenticated = False
     st.session_state.session_id = None
+    
+    # Remove session_id from URL query parameter
+    from streamlit import query_params
+    if "session_id" in query_params:
+        del query_params["session_id"]
     
     # Clean up old auth_token if it exists (legacy)
     if "auth_token" in st.session_state:
