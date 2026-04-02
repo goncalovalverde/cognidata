@@ -248,6 +248,16 @@ def inject_professional_css():
         color: {COLORS['white']} !important;
     }}
     
+    /* Universal selector for button text - catches all nested elements */
+    button:not([aria-selected]) > * {{
+        color: {COLORS['white']} !important;
+    }}
+    
+    .stButton button:not([aria-selected]) > span,
+    .stSidebar button:not([aria-selected]) > span {{
+        color: {COLORS['white']} !important;
+    }}
+    
     /* Inactive tab spans stay dark */
     [data-testid="stTabs"] button:not([aria-selected="true"]) *,
     [data-testid="stTabs"] button:not([aria-selected="true"]) span {{
@@ -268,10 +278,32 @@ def inject_professional_css():
     
     /* Hover state children - keep text white */
     button:not([aria-selected]):hover *,
+    button:not([aria-selected]):hover span,
+    button:not([aria-selected]):hover div,
     [data-testid*="button"] button:not([aria-selected]):hover *,
+    [data-testid*="button"] button:not([aria-selected]):hover span,
     .stButton button:not([aria-selected]):hover *,
+    .stButton button:not([aria-selected]):hover span,
     [data-testid*="Button"] button:not([aria-selected]):hover *,
-    .stSidebar button:not([aria-selected]):hover * {{
+    [data-testid*="Button"] button:not([aria-selected]):hover span,
+    .stSidebar button:not([aria-selected]):hover *,
+    .stSidebar button:not([aria-selected]):hover span {{
+        color: {COLORS['white']} !important;
+    }}
+    
+    /* Ultra-specific hover fix for all text elements inside buttons on hover */
+    [data-testid="stBaseButton-primary"]:hover,
+    [data-testid="stBaseButton-secondary"]:hover,
+    [data-testid="stBaseButton-tertiary"]:hover {{
+        color: {COLORS['white']} !important;
+    }}
+    
+    [data-testid="stBaseButton-primary"]:hover *,
+    [data-testid="stBaseButton-secondary"]:hover *,
+    [data-testid="stBaseButton-tertiary"]:hover *,
+    [data-testid="stBaseButton-primary"]:hover button,
+    [data-testid="stBaseButton-secondary"]:hover button,
+    [data-testid="stBaseButton-tertiary"]:hover button {{
         color: {COLORS['white']} !important;
     }}
     
