@@ -20,6 +20,7 @@ from utils.auth import require_auth_with_persistence, render_user_menu, init_aut
 from utils.colors import COLORS
 from app_pages import home, patients, tests, dashboard, config, protocols
 from components.design_components import apply_design_system
+from components.logo_header import render_logo_header
 from styles.professional_theme import inject_professional_css
 
 
@@ -45,38 +46,8 @@ def main():
     require_auth_with_persistence()  # NEW: With session persistence via JWT cookies
 
     with st.sidebar:
-        # Custom CSS con paleta profesional de clínica de psicología
-        st.markdown(f"""
-        <style>
-        [data-testid="stSidebar"] {{
-            background-color: {COLORS['background']};
-        }}
-        .sidebar-header {{
-            text-align: center;
-            padding: 20px 0;
-            border-bottom: 3px solid {COLORS['primary']};
-            margin-bottom: 20px;
-        }}
-        .sidebar-header h2 {{
-            margin: 0;
-            color: {COLORS['primary']};
-            font-size: 28px;
-        }}
-        .sidebar-header p {{
-            margin: 5px 0 0 0;
-            color: {COLORS['text_light']};
-            font-size: 12px;
-        }}
-        </style>
-        """, unsafe_allow_html=True)
-        
-        # Logo y título
-        st.markdown(f"""
-        <div class="sidebar-header">
-            <h2>🧠 CogniData</h2>
-            <p>Evaluación Neuropsicológica</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # Render professional logo header with brain illustration
+        render_logo_header()
         
         # Menú de navegación con colores profesionales
         page = option_menu(
