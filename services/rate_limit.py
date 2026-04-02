@@ -53,17 +53,24 @@ class RateLimitService:
 
         # Check if locked
         if attempt.is_locked():
-            remaining_minutes = (
-                (attempt.locked_until - datetime.now(timezone.utc)).total_seconds() / 60
-            )
+            now = datetime.now(timezone.utc)
+            # Handle both naive and aware datetimes from database
+            locked_until = attempt.locked_until
+            if locked_until.tzinfo is None:
+                locked_until = locked_until.replace(tzinfo=timezone.utc)
+            remaining_minutes = ((locked_until - now).total_seconds() / 60)
             raise RateLimitExceeded(
                 f"Too many failed login attempts. Please try again in {int(remaining_minutes)} minutes."
             )
 
         # Auto-reset if 24 hours since last attempt
-        hours_since_last = (
-            (datetime.now(timezone.utc) - attempt.last_attempt_at).total_seconds() / 3600
-        )
+        now = datetime.now(timezone.utc)
+        last_attempt = attempt.last_attempt_at
+        # Handle both naive and aware datetimes from database
+        if last_attempt.tzinfo is None:
+            last_attempt = last_attempt.replace(tzinfo=timezone.utc)
+        
+        hours_since_last = ((now - last_attempt).total_seconds() / 3600)
         if hours_since_last > RateLimitService.RESET_HOURS:
             attempt.reset()
             db.commit()
@@ -117,14 +124,19 @@ class RateLimitService:
                 "locked_until": None,
             }
 
+        time_remaining = 0
+        if attempt.is_locked():
+            now = datetime.now(timezone.utc)
+            locked_until = attempt.locked_until
+            # Handle both naive and aware datetimes from database
+            if locked_until.tzinfo is None:
+                locked_until = locked_until.replace(tzinfo=timezone.utc)
+            time_remaining = (locked_until - now).total_seconds() / 60
+
         return {
             "ip_address": ip_address,
             "is_locked": attempt.is_locked(),
             "failed_attempts": attempt.failed_attempts,
             "locked_until": attempt.locked_until,
-            "time_remaining_minutes": (
-                ((attempt.locked_until - datetime.now(timezone.utc)).total_seconds() / 60)
-                if attempt.is_locked()
-                else 0
-            ),
+            "time_remaining_minutes": time_remaining,
         }

@@ -31,7 +31,12 @@ class RateLimitAttempt(Base):
         """Check if IP is currently locked"""
         if self.locked_until is None:
             return False
-        return datetime.now(timezone.utc) < self.locked_until
+        now = datetime.now(timezone.utc)
+        locked_until = self.locked_until
+        # Handle both naive and aware datetimes from database
+        if locked_until.tzinfo is None:
+            locked_until = locked_until.replace(tzinfo=timezone.utc)
+        return now < locked_until
 
     def lock_for_duration(self, minutes: int = 15):
         """Lock IP for specified duration"""
