@@ -293,17 +293,26 @@ def require_auth_with_persistence():
     # Try to restore session from database using session_id
     if session_id:
         session_record = SessionManager.get_session_by_id(session_id)
-        if session_record and session_record.is_valid and session_record.is_active:
-            # Valid session found in database - restore it
-            user = User(
-                username=session_record.username,
-                role=session_record.get("role", "viewer"),
-                full_name=session_record.get("full_name", "")
-            )
-            st.session_state.user = user
-            st.session_state.authenticated = True
-            st.session_state.session_id = session_id
-            return
+        if session_record:
+            # session_record is a dict (from database query)
+            # Check if session is valid and active
+            is_active = session_record.get("is_active", False)
+            token_expires_at = session_record.get("token_expires_at")
+            
+            # Check expiration
+            is_expired = token_expires_at and datetime.utcnow() > token_expires_at
+            
+            if is_active and not is_expired:
+                # Valid session found in database - restore it
+                user = User(
+                    username=session_record.get("username", ""),
+                    role=session_record.get("role", "viewer"),
+                    full_name=session_record.get("full_name", "")
+                )
+                st.session_state.user = user
+                st.session_state.authenticated = True
+                st.session_state.session_id = session_id
+                return
     
     # No valid session - show login form
     _render_login_form()
