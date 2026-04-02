@@ -16,6 +16,8 @@ from services.audit import audit_service
 from utils.jwt_manager import JWTManager
 from database.connection import SessionLocal
 from models.user import User as DBUser, UserRole
+from services.rate_limit import RateLimitService, RateLimitExceeded
+from services.password_validator import PasswordValidator, PasswordStrengthError
 
 
 @dataclass
@@ -51,8 +53,9 @@ class AuthService:
         Called lazily on first authentication attempt to avoid
         import-time database access.
         
-        CRITICAL: Admin password MUST be provided via ADMIN_PASSWORD environment variable.
-        This prevents default credentials vulnerability (GDPR Article 32).
+        CRITICAL: Admin password MUST be provided via ADMIN_PASSWORD environment variable
+        and MUST meet strong password requirements (GDPR Article 32).
+        This prevents default credentials vulnerability.
         """
         db = SessionLocal()
         try:
@@ -68,6 +71,18 @@ class AuthService:
                         "  export ADMIN_PASSWORD='your_secure_password'\n\n"
                         "Then restart the application.\n\n"
                         "For production, store this in a secure vault (AWS Secrets Manager, Azure Key Vault, etc.)",
+                        file=sys.stderr
+                    )
+                    sys.exit(1)
+                
+                # Validate password strength (GDPR Article 32)
+                try:
+                    PasswordValidator.validate_or_raise(admin_password)
+                except PasswordStrengthError as e:
+                    print(
+                        f"FATAL: Admin password does not meet strength requirements:\n{e}\n\n"
+                        f"Feedback:\n{PasswordValidator.get_strength_feedback(admin_password)}\n\n"
+                        "Generate a stronger password and set ADMIN_PASSWORD environment variable.",
                         file=sys.stderr
                     )
                     sys.exit(1)
@@ -140,6 +155,7 @@ class AuthService:
     def authenticate(self, username: str, password: str) -> Optional[User]:
         """
         Authenticate a user with username and password from database.
+        Includes rate limiting to prevent brute-force attacks (GDPR Article 32).
 
         Args:
             username: The username
@@ -147,23 +163,38 @@ class AuthService:
 
         Returns:
             User object if authentication successful, None otherwise
+            Raises RateLimitExceeded if IP is rate-limited
         """
         # Ensure admin user exists on first authentication attempt
-        # (deferred from __init__ to avoid issues with table creation)
         self._ensure_admin_exists()
         
+        # Rate limiting: Check if IP is locked out
         db = SessionLocal()
         try:
+            ip_address = RateLimitService.get_client_ip()
+            
+            try:
+                RateLimitService.check_rate_limit(db, ip_address)
+            except RateLimitExceeded as e:
+                raise e  # Re-raise to be caught by login()
+            
             db_user = db.query(DBUser).filter(
                 DBUser.username == username,
                 DBUser.is_active == True
             ).first()
 
             if not db_user:
+                # Record failed attempt for rate limiting
+                RateLimitService.record_failed_attempt(db, ip_address)
                 return None
 
             if not self._verify_password(password, db_user.password_hash):
+                # Record failed attempt for rate limiting
+                RateLimitService.record_failed_attempt(db, ip_address)
                 return None
+
+            # Successful authentication: reset rate limit counter
+            RateLimitService.record_successful_attempt(db, ip_address)
 
             # Map database role to internal role name
             role_map = {
@@ -334,11 +365,14 @@ def require_role(required_role: str):
 
 def login(username: str, password: str) -> bool:
     """
-    Attempt to log in a user.
+    Attempt to log in a user with rate limiting protection.
     
     CRITICAL FIX: JWT tokens are NO LONGER stored in URL query parameters.
     Instead, session_id is stored in URL as query parameter (safe to expose).
     The actual JWT token is kept server-side only.
+    
+    RATE LIMITING: After 5 failed attempts, IP is locked for 15 minutes
+    (GDPR Article 32 - security enforcement).
     
     This prevents token exposure via browser history, logs, etc.
     Session persists across page reloads via URL query parameter.
@@ -349,7 +383,12 @@ def login(username: str, password: str) -> bool:
     from services.session_manager import SessionManager
     from datetime import timedelta
     
-    user = auth_service.authenticate(username, password)
+    try:
+        user = auth_service.authenticate(username, password)
+    except RateLimitExceeded as e:
+        # IP is locked due to too many failed attempts
+        st.error(f"🔒 {str(e)}")
+        return False
 
     if user:
         st.session_state.user = user
