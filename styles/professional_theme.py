@@ -326,7 +326,7 @@ def inject_professional_css():
     }}
     
     /* Hover states (EXCEPT TABS - tabs have their own hover) */
-    button:not([aria-selected]):hover:not([data-testid="stTabs"] button),
+    button:not([aria-selected]):hover,
     [data-testid*="button"] button:not([aria-selected]):hover,
     .stButton button:not([aria-selected]):hover,
     [data-testid*="Button"] button:not([aria-selected]):hover,
@@ -337,14 +337,10 @@ def inject_professional_css():
         box-shadow: 0 4px 12px rgba(147, 32, 214, 0.3);
     }}
     
-    /* Explicit exclusion of tabs from button hover */
-    [data-testid="stTabs"] button:hover {{
-        background-color: transparent !important;
-        box-shadow: none !important;
-        transform: none !important;
-    }}
+    /* IMPORTANT: Do NOT reset tab hover - let tab-specific hover rule take effect */
     
-    /* Hover state children - keep text white */
+    /* Hover state children - keep text white (EXCEPT tabs - they keep dark text) */
+    /* Only apply to non-tab buttons */
     button:not([aria-selected]):hover *,
     button:not([aria-selected]):hover span,
     button:not([aria-selected]):hover div,
@@ -357,6 +353,12 @@ def inject_professional_css():
     .stSidebar button:not([aria-selected]):hover *,
     .stSidebar button:not([aria-selected]):hover span {{
         color: {COLORS['white']} !important;
+    }}
+    
+    /* Ensure inactive tabs keep dark text on hover */
+    [data-testid="stTabs"] button:not([aria-selected="true"]):hover *,
+    [data-testid="stTabs"] button:not([aria-selected="true"]):hover span {{
+        color: {COLORS['text_dark']} !important;
     }}
     
     /* Ultra-specific hover fix for all text elements inside buttons on hover */
