@@ -10,6 +10,7 @@ from models import Protocol
 from utils.colors import COLORS
 from services.audit import audit_service
 from components.design_components import alert, header
+from styles.professional_theme import create_custom_alert
 
 
 def render():
@@ -67,7 +68,11 @@ def _render_view_protocols():
     
     # Display protocols as cards
     if not filtered_protocols:
-        st.warning(f"No hay protocolos en la categoría '{selected_category}'")
+        create_custom_alert(
+            title="Sin Protocolos",
+            message=f"No hay protocolos en la categoría '{selected_category}'",
+            alert_type="info"
+        )
         return
     
     # Create table view

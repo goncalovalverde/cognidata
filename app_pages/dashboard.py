@@ -13,6 +13,7 @@ from services.pdf_generator import pdf_generator
 from services.audit import audit_service
 from services.patient_protocol_service import patient_protocol_service
 from components.design_components import alert, header
+from styles.professional_theme import create_custom_alert
 
 
 def render():
@@ -36,8 +37,10 @@ def _render_cognitive_profile():
         patients = db.query(Patient).order_by(Patient.created_at.desc()).all()
 
         if not patients:
-            st.warning(
-                "⚠️ No hay pacientes registrados. Crea uno primero en la sección 'Pacientes'."
+            create_custom_alert(
+                title="Sin Pacientes Registrados",
+                message="Crea uno primero en la sección 'Pacientes'.",
+                alert_type="info"
             )
             return
 
@@ -80,11 +83,15 @@ def _render_cognitive_profile():
         db.close()
 
     if not sessions_data:
-        st.info(
-            f"👤 Paciente seleccionado: {patient_data['age']} años, {patient_data['education_years']} años de escolaridad"
+        create_custom_alert(
+            title="Información del Paciente",
+            message=f"Paciente seleccionado: {patient_data['age']} años, {patient_data['education_years']} años de escolaridad",
+            alert_type="info"
         )
-        st.warning(
-            "Este paciente no tiene tests realizados aún. Ve a la sección 'Tests' para realizar evaluaciones."
+        create_custom_alert(
+            title="Sin Tests Realizados",
+            message="Este paciente no tiene tests realizados aún. Ve a la sección 'Tests' para realizar evaluaciones.",
+            alert_type="warning"
         )
     else:
         _render_patient_info(patient_data, len(sessions_data))
@@ -416,12 +423,16 @@ def _render_interpretation():
 
         col1, col2 = st.columns(2)
         with col1:
-            st.success(
-                f"**💪 Punto Fuerte:** {test_names[max_idx]} (pe={pe_scores[max_idx]})"
+            create_custom_alert(
+                title="💪 Punto Fuerte",
+                message=f"{test_names[max_idx]} (pe={pe_scores[max_idx]})",
+                alert_type="success"
             )
         with col2:
-            st.warning(
-                f"**⚠️ Área de Dificultad:** {test_names[min_idx]} (pe={pe_scores[min_idx]})"
+            create_custom_alert(
+                title="⚠️ Área de Dificultad",
+                message=f"{test_names[min_idx]} (pe={pe_scores[min_idx]})",
+                alert_type="warning"
             )
 
 

@@ -20,6 +20,7 @@ from utils.auth import require_auth_with_persistence, render_user_menu, init_aut
 from utils.colors import COLORS
 from app_pages import home, patients, tests, dashboard, config, protocols
 from components.design_components import apply_design_system
+from styles.professional_theme import inject_professional_css
 
 
 st.set_page_config(
@@ -35,6 +36,9 @@ init_auth_state()
 
 def main():
     """Main application entry point"""
+    # CRITICAL: Inject professional CSS theme FIRST, before any st operations
+    inject_professional_css()
+    
     # Apply Triune design system (colors, typography, icons)
     apply_design_system()
     
