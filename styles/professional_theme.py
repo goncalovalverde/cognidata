@@ -261,8 +261,18 @@ def inject_professional_css():
     [data-testid*="Button"] button:not([aria-selected]):hover,
     .stSidebar button:not([aria-selected]):hover {{
         background-color: {COLORS['purple_dark']} !important;
+        color: {COLORS['white']} !important;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(147, 32, 214, 0.3);
+    }}
+    
+    /* Hover state children - keep text white */
+    button:not([aria-selected]):hover *,
+    [data-testid*="button"] button:not([aria-selected]):hover *,
+    .stButton button:not([aria-selected]):hover *,
+    [data-testid*="Button"] button:not([aria-selected]):hover *,
+    .stSidebar button:not([aria-selected]):hover * {{
+        color: {COLORS['white']} !important;
     }}
     
     /* Active states (EXCEPT TABS) */
