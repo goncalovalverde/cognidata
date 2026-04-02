@@ -179,12 +179,12 @@ def inject_professional_css():
     
     /* Tab buttons */
     [data-testid="stTabs"] button {{
-        background-color: transparent;
-        color: {COLORS['text_dark']};
+        background-color: transparent !important;
+        color: {COLORS['text_dark']} !important;
         border: none;
-        border-bottom: 3px solid transparent;
+        border-bottom: 3px solid transparent !important;
         padding: 0.75rem 1.5rem;
-        font-weight: 500;
+        font-weight: 500 !important;
         transition: all 0.3s ease;
         cursor: pointer;
         border-radius: 0px;
@@ -192,16 +192,111 @@ def inject_professional_css():
     
     /* Active tab - purple background with white text (matching navbar effect) */
     [data-testid="stTabs"] button[aria-selected="true"] {{
-        background-color: {COLORS['purple_vibrant']};
-        color: {COLORS['white']};
-        border-bottom: 3px solid {COLORS['purple_dark']};
-        font-weight: 600;
+        background-color: {COLORS['purple_vibrant']} !important;
+        color: {COLORS['white']} !important;
+        border-bottom: 3px solid {COLORS['purple_dark']} !important;
+        font-weight: 600 !important;
+    }}
+    
+    /* Active tab text/span elements */
+    [data-testid="stTabs"] button[aria-selected="true"] *,
+    [data-testid="stTabs"] button[aria-selected="true"] span {{
+        color: {COLORS['white']} !important;
     }}
     
     /* Hover effect on inactive tabs */
     [data-testid="stTabs"] button:not([aria-selected="true"]):hover {{
-        color: {COLORS['purple_vibrant']};
+        color: {COLORS['purple_vibrant']} !important;
         background-color: rgba(147, 32, 214, 0.1);
+    }}
+    
+    
+     /* ===== BUTTON STYLING ===== */
+    
+    /* ALL buttons - comprehensive coverage (EXCEPT TABS) */
+    button:not([aria-selected]),
+    [data-testid*="button"] button:not([aria-selected]),
+    .stButton button:not([aria-selected]),
+    [data-testid*="Button"] button:not([aria-selected]),
+    .stSidebar button:not([aria-selected]) {{
+        color: {COLORS['white']} !important;
+        background-color: {COLORS['purple_vibrant']} !important;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-weight: 600 !important;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }}
+    
+    /* Exclude tabs from generic button styling */
+    [data-testid="stTabs"] button {{
+        color: {COLORS['text_dark']} !important;
+        background-color: transparent !important;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500 !important;
+        border: none;
+        border-bottom: 3px solid transparent !important;
+    }}
+    
+    /* Force white text on ALL button children (EXCEPT IN TABS) */
+    button:not([aria-selected]) *,
+    [data-testid*="button"] button:not([aria-selected]) *,
+    .stButton button:not([aria-selected]) *,
+    [data-testid*="Button"] button:not([aria-selected]) *,
+    .stSidebar button:not([aria-selected]) * {{
+        color: {COLORS['white']} !important;
+    }}
+    
+    /* Inactive tab spans stay dark */
+    [data-testid="stTabs"] button:not([aria-selected="true"]) *,
+    [data-testid="stTabs"] button:not([aria-selected="true"]) span {{
+        color: {COLORS['text_dark']} !important;
+    }}
+    
+    /* Hover states (EXCEPT TABS - tabs have their own hover) */
+    button:not([aria-selected]):hover,
+    [data-testid*="button"] button:not([aria-selected]):hover,
+    .stButton button:not([aria-selected]):hover,
+    [data-testid*="Button"] button:not([aria-selected]):hover,
+    .stSidebar button:not([aria-selected]):hover {{
+        background-color: {COLORS['purple_dark']} !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(147, 32, 214, 0.3);
+    }}
+    
+    /* Active states (EXCEPT TABS) */
+    button:not([aria-selected]):active,
+    [data-testid*="button"] button:not([aria-selected]):active,
+    .stButton button:not([aria-selected]):active,
+    [data-testid*="Button"] button:not([aria-selected]):active,
+    .stSidebar button:not([aria-selected]):active {{
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(147, 32, 214, 0.2);
+    }}
+    
+    /* Streamlit primary button */
+    [data-testid="stBaseButton-primary"] {{
+        background-color: {COLORS['purple_vibrant']} !important;
+    }}
+    
+    [data-testid="stBaseButton-primary"] > button {{
+        background-color: {COLORS['purple_vibrant']} !important;
+        color: {COLORS['white']} !important;
+        font-weight: 600 !important;
+    }}
+    
+    [data-testid="stBaseButton-primary"] > button:hover {{
+        background-color: {COLORS['purple_dark']} !important;
+    }}
+    
+    /* All button spans and labels */
+    button span,
+    [data-testid*="button"] span,
+    .stButton span,
+    [data-testid*="Button"] span,
+    .stSidebar span {{
+        color: {COLORS['white']} !important;
     }}
     
     
