@@ -694,6 +694,23 @@ def inject_professional_css():
         }}
     }}
     
+    /* ===== FINAL TAB HOVER OVERRIDE (after all other styles) ===== */
+    /* This ensures tab hover effects are not overridden by button styles */
+    [data-testid="stTabs"] button:not([aria-selected="true"]):hover {{
+        color: {COLORS['purple_vibrant']} !important;
+        background-color: rgba(147, 32, 214, 0.1) !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }}
+    
+    [data-testid="stTabs"] button:not([aria-selected="true"]):hover * {{
+        color: {COLORS['purple_vibrant']} !important;
+    }}
+    
+    [data-testid="stTabs"] button:not([aria-selected="true"]):hover span {{
+        color: {COLORS['purple_vibrant']} !important;
+    }}
+    
     </style>
     """
     
