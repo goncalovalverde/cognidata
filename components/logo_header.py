@@ -17,7 +17,7 @@ def render_logo_header():
     Render the professional logo header section using Streamlit components.
     
     Includes:
-    - Brain illustration (emoji styled)
+    - Brain illustration (emoji)
     - Title "Cognidata"
     - Subtitle "Evaluación Neuropsicológica"
     """
@@ -26,13 +26,6 @@ def render_logo_header():
     col1, col2, col3 = st.columns([0.1, 0.8, 0.1])
     
     with col2:
-        # Crown emoji at top
-        st.markdown("""
-        <div style="text-align: center; font-size: 1.5rem; margin-bottom: 0.5rem;">
-            👑
-        </div>
-        """, unsafe_allow_html=True)
-        
         # Brain emoji (centered, larger)
         st.markdown("""
         <div style="text-align: center; font-size: 4rem; margin: 0.5rem 0;">
