@@ -63,11 +63,50 @@ def inject_professional_css():
         padding-top: 0;
     }}
     
-    /* Hide Streamlit's default header/menu bar */
+    /* Hide Streamlit's default header/menu bar (but NOT the hamburger button) */
     header {{
         visibility: hidden;
         height: 0;
         padding: 0;
+    }}
+    
+    /* Show the collapse/expand button for sidebar */
+    [data-testid="stSidebar"] button[kind="secondary"],
+    .stSidebar button,
+    [aria-label*="close"],
+    [aria-label*="open"],
+    [aria-label*="sidebar"],
+    [aria-label*="menu"] {{
+        visibility: visible !important;
+        display: block !important;
+        height: auto !important;
+    }}
+    
+    /* Make sure hamburger button is accessible */
+    [data-testid="stSidebar"] [aria-label*="sidebar"],
+    [data-testid="stSidebar"] [aria-label*="menu"],
+    button[aria-label*="sidebar"],
+    button[aria-label*="menu"] {{
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: auto !important;
+        height: auto !important;
+        padding: 0.5rem !important;
+        margin: 0.5rem !important;
+        background-color: {COLORS['purple_vibrant']} !important;
+        color: {COLORS['white']} !important;
+        border: none !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+    }}
+    
+    button[aria-label*="sidebar"]:hover,
+    button[aria-label*="menu"]:hover {{
+        background-color: {COLORS['purple_dark']} !important;
     }}
     
     
@@ -85,6 +124,28 @@ def inject_professional_css():
     
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
         gap: 1rem;
+    }}
+    
+    /* Sidebar toggle button */
+    [data-testid="stSidebarCollapseButton"],
+    .st-emotion-cache-1cffbcj button,
+    [aria-label="toggle"] {{
+        visibility: visible !important;
+        display: flex !important;
+        background-color: {COLORS['purple_vibrant']} !important;
+        color: {COLORS['white']} !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.5rem !important;
+        height: auto !important;
+        width: auto !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+    }}
+    
+    [data-testid="stSidebarCollapseButton"]:hover,
+    .st-emotion-cache-1cffbcj button:hover {{
+        background-color: {COLORS['purple_dark']} !important;
     }}
     
     
