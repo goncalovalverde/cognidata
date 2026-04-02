@@ -56,6 +56,7 @@ def inject_professional_css():
     .main {{
         background-color: {COLORS['bg_main']};
         padding: 2rem;
+        padding-top: 3rem;
     }}
     
     /* Remove default Streamlit header padding */
@@ -63,52 +64,77 @@ def inject_professional_css():
         padding-top: 0;
     }}
     
-    /* Hide Streamlit's default header/menu bar (but NOT the hamburger button) */
+    /* Hide Streamlit's default header/menu bar - but allow toggle button */
     header {{
-        visibility: hidden;
         height: 0;
+        overflow: visible !important;
         padding: 0;
+        border: none;
+        box-shadow: none;
+        background: transparent;
     }}
     
-    /* Show the collapse/expand button for sidebar */
-    [data-testid="stSidebar"] button[kind="secondary"],
-    .stSidebar button,
-    [aria-label*="close"],
-    [aria-label*="open"],
-    [aria-label*="sidebar"],
-    [aria-label*="menu"] {{
-        visibility: visible !important;
-        display: block !important;
-        height: auto !important;
+    /* Hide header content except toggle */
+    header > * {{
+        display: none !important;
     }}
     
-    /* Make sure hamburger button is accessible */
-    [data-testid="stSidebar"] [aria-label*="sidebar"],
-    [data-testid="stSidebar"] [aria-label*="menu"],
-    button[aria-label*="sidebar"],
-    button[aria-label*="menu"] {{
+    /* Show ONLY the toggle button in header */
+    header button,
+    [data-testid="stSidebarCollapseButton"],
+    header [aria-label*="sidebar"],
+    header [aria-label*="menu"] {{
+        display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
-        display: flex !important;
+    }}
+    
+    /* Position toggle button at top-left */
+    header {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 999;
+        width: 100%;
+        height: auto;
+        display: flex;
         align-items: center;
-        justify-content: center;
-        width: auto !important;
-        height: auto !important;
-        padding: 0.5rem !important;
-        margin: 0.5rem !important;
+        padding: 0.5rem 1rem;
+    }}
+    
+    /* Style the toggle button */
+    header button {{
         background-color: {COLORS['purple_vibrant']} !important;
         color: {COLORS['white']} !important;
         border: none !important;
         border-radius: 8px !important;
+        padding: 0.5rem 0.75rem !important;
+        height: auto !important;
+        width: auto !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        margin: 0 !important;
+    }}
+    
+    header button:hover {{
+        background-color: {COLORS['purple_dark']} !important;
+        transform: translateY(-2px);
+    }}
+    
+    /* Alternative: style toggle via data-testid */
+    [data-testid="stSidebarCollapseButton"] {{
+        background-color: {COLORS['purple_vibrant']} !important;
+        color: {COLORS['white']} !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 0.75rem !important;
         cursor: pointer !important;
         transition: all 0.3s ease !important;
     }}
     
-    button[aria-label*="sidebar"]:hover,
-    button[aria-label*="menu"]:hover {{
+    [data-testid="stSidebarCollapseButton"]:hover {{
         background-color: {COLORS['purple_dark']} !important;
     }}
-    
     
     /* ===== SIDEBAR STYLING ===== */
     
