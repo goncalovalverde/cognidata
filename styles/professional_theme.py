@@ -187,18 +187,21 @@ def inject_professional_css():
         font-weight: 500;
         transition: all 0.3s ease;
         cursor: pointer;
+        border-radius: 0px;
     }}
     
-    /* Active tab - purple underline */
+    /* Active tab - purple background with white text (matching navbar effect) */
     [data-testid="stTabs"] button[aria-selected="true"] {{
-        color: {COLORS['purple_vibrant']};
-        border-bottom-color: {COLORS['purple_vibrant']};
+        background-color: {COLORS['purple_vibrant']};
+        color: {COLORS['white']};
+        border-bottom: 3px solid {COLORS['purple_dark']};
         font-weight: 600;
     }}
     
-    /* Hover effect on tabs */
-    [data-testid="stTabs"] button:hover {{
+    /* Hover effect on inactive tabs */
+    [data-testid="stTabs"] button:not([aria-selected="true"]):hover {{
         color: {COLORS['purple_vibrant']};
+        background-color: rgba(147, 32, 214, 0.1);
     }}
     
     
