@@ -326,7 +326,7 @@ def inject_professional_css():
     }}
     
     /* Hover states (EXCEPT TABS - tabs have their own hover) */
-    button:not([aria-selected]):hover,
+    button:not([aria-selected]):hover:not([data-testid="stTabs"] button),
     [data-testid*="button"] button:not([aria-selected]):hover,
     .stButton button:not([aria-selected]):hover,
     [data-testid*="Button"] button:not([aria-selected]):hover,
@@ -335,6 +335,13 @@ def inject_professional_css():
         color: {COLORS['white']} !important;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(147, 32, 214, 0.3);
+    }}
+    
+    /* Explicit exclusion of tabs from button hover */
+    [data-testid="stTabs"] button:hover {{
+        background-color: transparent !important;
+        box-shadow: none !important;
+        transform: none !important;
     }}
     
     /* Hover state children - keep text white */
