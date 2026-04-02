@@ -27,25 +27,17 @@ def render_logo_header():
     col1, col2, col3 = st.columns([0.1, 0.8, 0.1])
     
     with col2:
-        # Brain emoji (centered, medium size)
+        # Brain emoji and title together with negative margin to reduce gap
         st.markdown("""
-        <div style="text-align: center; font-size: 2.5rem; margin: 0;">
-            🧠
+        <div style="text-align: center; line-height: 0.8;">
+            <div style="font-size: 2.5rem;">🧠</div>
+            <h1 style="color: #3d0c4d; font-size: 1.8rem; margin: -0.5rem 0 0.1rem 0; letter-spacing: -0.5px; font-weight: 700;">
+                Cognidata
+            </h1>
+            <p style="color: #9320d6; font-size: 0.85rem; margin: 0; font-weight: 500; letter-spacing: 0.3px;">
+                Evaluación Neuropsicológica
+            </p>
         </div>
-        """, unsafe_allow_html=True)
-        
-        # Title (compact)
-        st.markdown("""
-        <h1 style="text-align: center; color: #3d0c4d; font-size: 1.8rem; margin: 0 0 0.1rem 0; letter-spacing: -0.5px; font-weight: 700;">
-            Cognidata
-        </h1>
-        """, unsafe_allow_html=True)
-        
-        # Subtitle (compact)
-        st.markdown("""
-        <p style="text-align: center; color: #9320d6; font-size: 0.85rem; margin: 0; font-weight: 500; letter-spacing: 0.3px;">
-            Evaluación Neuropsicológica
-        </p>
         """, unsafe_allow_html=True)
     
     # Minimal divider
