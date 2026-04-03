@@ -85,18 +85,21 @@ def inject_professional_css():
         background-color: {COLORS['purple_vibrant']} !important;
         color: {COLORS['white']} !important;
         border: none !important;
-        border-radius: 6px !important;
-        padding: 0.3rem 0.5rem !important;
-        height: 32px !important;
-        width: 32px !important;
-        min-width: 32px !important;
-        min-height: 32px !important;
+        border-radius: 4px !important;
+        padding: 0.2rem 0.3rem !important;
+        height: 24px !important;
+        width: 24px !important;
+        min-width: 24px !important;
+        min-height: 24px !important;
+        max-width: 24px !important;
+        max-height: 24px !important;
         cursor: pointer !important;
         transition: all 0.3s ease !important;
         margin: 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        font-size: 16px !important;
     }}
     
     header button:hover {{
