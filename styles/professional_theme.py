@@ -85,12 +85,12 @@ def inject_professional_css():
         background-color: {COLORS['purple_vibrant']} !important;
         color: {COLORS['white']} !important;
         border: none !important;
-        border-radius: 8px !important;
-        padding: 0.5rem 0.75rem !important;
-        height: 40px !important;
-        width: 40px !important;
-        min-width: 40px !important;
-        min-height: 40px !important;
+        border-radius: 6px !important;
+        padding: 0.3rem 0.5rem !important;
+        height: 32px !important;
+        width: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
         cursor: pointer !important;
         transition: all 0.3s ease !important;
         margin: 0 !important;
