@@ -136,7 +136,7 @@ def inject_professional_css():
         gap: 1rem;
     }}
     
-    /* Sidebar toggle button */
+    /* Sidebar toggle button (inside sidebar) - keep small */
     [data-testid="stSidebarCollapseButton"],
     .st-emotion-cache-1cffbcj button,
     [aria-label="toggle"] {{
@@ -145,12 +145,18 @@ def inject_professional_css():
         background-color: {COLORS['purple_vibrant']} !important;
         color: {COLORS['white']} !important;
         border: none !important;
-        border-radius: 8px !important;
-        padding: 0.5rem !important;
-        height: auto !important;
-        width: auto !important;
+        border-radius: 3px !important;
+        padding: 0 !important;
+        height: 20px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        min-height: 20px !important;
+        max-width: 20px !important;
+        max-height: 20px !important;
         cursor: pointer !important;
         transition: all 0.3s ease !important;
+        font-size: 14px !important;
+        line-height: 1 !important;
     }}
     
     [data-testid="stSidebarCollapseButton"]:hover,
