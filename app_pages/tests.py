@@ -61,7 +61,12 @@ def render():
 
             test_type = st.selectbox(
                 "Tipo de Test",
-                ["TMT-A", "TMT-B", "TAVEC", "Fluidez-FAS", "Rey-Copia", "Rey-Memoria", "Toulouse-Pieron", "Torre de Londres"],
+                [
+                    "TMT-A", "TMT-B", "TAVEC", "Fluidez-FAS", "Fluidez-Semántica",
+                    "Rey-Copia", "Rey-Memoria", "Toulouse-Pieron", "Torre de Londres",
+                    "DIVA-5", "BRIEF-A", "WAIS-IV", "Dígitos", "Test d2-R", "FDT",
+                    "BADS-Zoo", "BADS-Llave", "FCSRT", "Perfil Sensorial"
+                ],
             )
 
             st.markdown("---")
@@ -74,6 +79,8 @@ def render():
                 _render_tavec_form(selected_patient_id)
             elif test_type == "Fluidez-FAS":
                 _render_fluidez_form(selected_patient_id)
+            elif test_type == "Fluidez-Semántica":
+                _render_fluidez_semantic_form(selected_patient_id)
             elif test_type == "Rey-Copia":
                 _render_rey_copia_form(selected_patient_id)
             elif test_type == "Rey-Memoria":
@@ -82,6 +89,26 @@ def render():
                 _render_toulouse_pieron_form(selected_patient_id)
             elif test_type == "Torre de Londres":
                 _render_torre_de_londres_form(selected_patient_id)
+            elif test_type == "DIVA-5":
+                _render_diva5_form(selected_patient_id)
+            elif test_type == "BRIEF-A":
+                _render_brief_a_form(selected_patient_id)
+            elif test_type == "WAIS-IV":
+                _render_wais_iv_form(selected_patient_id)
+            elif test_type == "Dígitos":
+                _render_digitos_form(selected_patient_id)
+            elif test_type == "Test d2-R":
+                _render_d2r_form(selected_patient_id)
+            elif test_type == "FDT":
+                _render_fdt_form(selected_patient_id)
+            elif test_type == "BADS-Zoo":
+                _render_bads_zoo_form(selected_patient_id)
+            elif test_type == "BADS-Llave":
+                _render_bads_llave_form(selected_patient_id)
+            elif test_type == "FCSRT":
+                _render_fcsrt_form(selected_patient_id)
+            elif test_type == "Perfil Sensorial":
+                _render_perfil_sensorial_form(selected_patient_id)
     finally:
         db.close()
 
@@ -900,3 +927,426 @@ def _render_torre_de_londres_form(patient_id: str):
                         for r in result['item_results']
                     ])
                     st.dataframe(item_df, width='stretch', hide_index=True)
+
+
+def _render_fluidez_semantic_form(patient_id: str):
+    """Render Fluidez Semántica test form"""
+    st.subheader("💬 Fluidez Verbal Semántica")
+    st.caption("Test de fluidez semántica - Nombrar palabras de una categoría en 60 segundos")
+    
+    with st.form("form_fluidez_semantic"):
+        st.markdown("**Categoría de Palabras (ej: Animales, Frutas, Profesiones)**")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            categoria = st.text_input("Categoría", "Animales")
+        with col2:
+            palabras = st.number_input("Palabras válidas", min_value=0, max_value=100, value=20)
+        with col3:
+            errores = st.number_input("Errores/Perseveraciones", min_value=0, max_value=20, value=0)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Calcular y Guardar")
+        
+        if submitted:
+            raw_data = {
+                "categoria": categoria,
+                "palabras": palabras,
+                "errores": errores
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "z_score": 0,
+                "clasificacion": "Normal",
+                "norma_aplicada": {
+                    "fuente": "Simulado",
+                    "test": "Fluidez-Semántica"
+                }
+            }
+            _save_test_session(patient_id, "Fluidez-Semántica", raw_data, scores)
+            alert("Test Fluidez Semántica guardado exitosamente!", alert_type="success")
+            _display_scores(scores)
+
+
+def _render_diva5_form(patient_id: str):
+    """Render DIVA-5 test form"""
+    st.subheader("📋 DIVA-5")
+    st.caption("Entrevista Diagnóstica del TDAH en Adultos - Versión 5")
+    
+    with st.form("form_diva5"):
+        st.markdown("**Síntomas de Infancia (Presente/Ausente)**")
+        childhood_symptoms = {
+            "Dificultad mantener atención": st.checkbox("Dificultad mantener atención", value=False),
+            "Impulsividad": st.checkbox("Impulsividad", value=False),
+            "Hiperactividad": st.checkbox("Hiperactividad", value=False),
+            "Dificultades organizativas": st.checkbox("Dificultades organizativas", value=False),
+        }
+        
+        st.markdown("**Síntomas Actuales**")
+        current_symptoms = {
+            "Atención": st.checkbox("Problemas de atención actuales", value=False),
+            "Organización": st.checkbox("Dificultades con organización", value=False),
+            "Impulsividad actual": st.checkbox("Impulsividad actual", value=False),
+        }
+        
+        observaciones = st.text_area("Observaciones clínicas", "")
+        submitted = st.form_submit_button("💾 Guardar DIVA-5")
+        
+        if submitted:
+            raw_data = {"childhood": childhood_symptoms, "current": current_symptoms}
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Evaluación Completa",
+                "norma_aplicada": {"fuente": "Simulado", "test": "DIVA-5"}
+            }
+            _save_test_session(patient_id, "DIVA-5", raw_data, scores)
+            alert("DIVA-5 guardado exitosamente!", alert_type="success")
+
+
+def _render_brief_a_form(patient_id: str):
+    """Render BRIEF-A test form"""
+    st.subheader("🧠 BRIEF-A")
+    st.caption("Inventario de Evaluación de la Función Ejecutiva - Versión Adultos")
+    
+    with st.form("form_brief_a"):
+        st.markdown("**Escala de Inhibición (Rango: 0-36)**")
+        inhibicion = st.slider("Puntuación de Inhibición", 0, 36, 18)
+        
+        st.markdown("**Cambio Mental (Rango: 0-30)**")
+        cambio = st.slider("Puntuación de Cambio Mental", 0, 30, 15)
+        
+        st.markdown("**Control Emocional (Rango: 0-24)**")
+        emocional = st.slider("Control Emocional", 0, 24, 12)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar BRIEF-A")
+        
+        if submitted:
+            raw_data = {
+                "inhibicion": inhibicion,
+                "cambio_mental": cambio,
+                "control_emocional": emocional
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "BRIEF-A"}
+            }
+            _save_test_session(patient_id, "BRIEF-A", raw_data, scores)
+            alert("BRIEF-A guardado exitosamente!", alert_type="success")
+
+
+def _render_wais_iv_form(patient_id: str):
+    """Render WAIS-IV test form"""
+    st.subheader("🧩 WAIS-IV")
+    st.caption("Subtests: Búsqueda de Símbolos y Clave de Números")
+    
+    with st.form("form_wais_iv"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**Búsqueda de Símbolos**")
+            simbolos_correctos = st.number_input("Correctos", 0, 100, 30)
+            simbolos_errores = st.number_input("Errores", 0, 50, 2)
+            simbolos_tiempo = st.number_input("Tiempo (segundos)", 0, 300, 120)
+        
+        with col2:
+            st.markdown("**Clave de Números**")
+            clave_correctos = st.number_input("Correctos (Clave)", 0, 150, 80)
+            clave_errores = st.number_input("Errores (Clave)", 0, 50, 3)
+            clave_tiempo = st.number_input("Tiempo (Clave)", 0, 300, 120)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar WAIS-IV")
+        
+        if submitted:
+            raw_data = {
+                "busqueda_simbolos": {"correctos": simbolos_correctos, "errores": simbolos_errores, "tiempo": simbolos_tiempo},
+                "clave_numeros": {"correctos": clave_correctos, "errores": clave_errores, "tiempo": clave_tiempo}
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "WAIS-IV"}
+            }
+            _save_test_session(patient_id, "WAIS-IV", raw_data, scores)
+            alert("WAIS-IV guardado exitosamente!", alert_type="success")
+
+
+def _render_digitos_form(patient_id: str):
+    """Render Dígitos test form"""
+    st.subheader("🔢 Dígitos")
+    st.caption("Test de Amplitud de Dígitos - Orden Directo, Inverso y Creciente")
+    
+    with st.form("form_digitos"):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("**Orden Directo**")
+            directo = st.number_input("Amplitud máxima", 1, 9, 5)
+        
+        with col2:
+            st.markdown("**Orden Inverso**")
+            inverso = st.number_input("Amplitud máxima (Inverso)", 1, 8, 4)
+        
+        with col3:
+            st.markdown("**Orden Creciente**")
+            creciente = st.number_input("Amplitud máxima (Creciente)", 1, 8, 4)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar Dígitos")
+        
+        if submitted:
+            raw_data = {
+                "orden_directo": directo,
+                "orden_inverso": inverso,
+                "orden_creciente": creciente
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "Dígitos"}
+            }
+            _save_test_session(patient_id, "Dígitos", raw_data, scores)
+            alert("Test Dígitos guardado exitosamente!", alert_type="success")
+
+
+def _render_d2r_form(patient_id: str):
+    """Render Test d2-R form"""
+    st.subheader("👁️ Test d2-R")
+    st.caption("Test de Atención y Concentración")
+    
+    with st.form("form_d2r"):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            correctos = st.number_input("Procesados correctamente", 0, 600, 250)
+        
+        with col2:
+            omisiones = st.number_input("Omisiones", 0, 200, 10)
+        
+        with col3:
+            comisiones = st.number_input("Comisiones", 0, 200, 5)
+        
+        concentracion = st.slider("Índice de concentración", 0.0, 1.0, 0.8, 0.01)
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar Test d2-R")
+        
+        if submitted:
+            raw_data = {
+                "correctos": correctos,
+                "omisiones": omisiones,
+                "comisiones": comisiones,
+                "indice_concentracion": concentracion
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "Test d2-R"}
+            }
+            _save_test_session(patient_id, "Test d2-R", raw_data, scores)
+            alert("Test d2-R guardado exitosamente!", alert_type="success")
+
+
+def _render_fdt_form(patient_id: str):
+    """Render FDT (Five Digit Test) form"""
+    st.subheader("5️⃣ FDT")
+    st.caption("Test de los 5 Dígitos - Atención y Control Inhibitorio")
+    
+    with st.form("form_fdt"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**Lectura (Reading)**")
+            lectura_tiempo = st.number_input("Tiempo Lectura (s)", 0, 120, 45)
+            lectura_errores = st.number_input("Errores Lectura", 0, 10, 0)
+        
+        with col2:
+            st.markdown("**Conteo (Counting)**")
+            conteo_tiempo = st.number_input("Tiempo Conteo (s)", 0, 120, 50)
+            conteo_errores = st.number_input("Errores Conteo", 0, 10, 1)
+        
+        st.markdown("**Alternancia (Switching)**")
+        alt_tiempo = st.number_input("Tiempo Alternancia (s)", 0, 120, 65)
+        alt_errores = st.number_input("Errores Alternancia", 0, 10, 1)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar FDT")
+        
+        if submitted:
+            raw_data = {
+                "lectura": {"tiempo": lectura_tiempo, "errores": lectura_errores},
+                "conteo": {"tiempo": conteo_tiempo, "errores": conteo_errores},
+                "alternancia": {"tiempo": alt_tiempo, "errores": alt_errores}
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "FDT"}
+            }
+            _save_test_session(patient_id, "FDT", raw_data, scores)
+            alert("FDT guardado exitosamente!", alert_type="success")
+
+
+def _render_bads_zoo_form(patient_id: str):
+    """Render BADS Zoo Map test form"""
+    st.subheader("🗺️ BADS - Test del Mapa del Zoo")
+    st.caption("Evaluación de Planificación y Organización (Batería BADS)")
+    
+    with st.form("form_bads_zoo"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            errores_ruta = st.number_input("Errores de Ruta", 0, 20, 2)
+            pasos_totales = st.number_input("Pasos Totales", 0, 50, 25)
+        
+        with col2:
+            tiempo = st.number_input("Tiempo (segundos)", 0, 600, 180)
+            eficiencia = st.slider("Eficiencia Planificación", 0.0, 1.0, 0.8, 0.1)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar BADS Zoo")
+        
+        if submitted:
+            raw_data = {
+                "errores_ruta": errores_ruta,
+                "pasos_totales": pasos_totales,
+                "tiempo": tiempo,
+                "eficiencia": eficiencia
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "BADS-Zoo"}
+            }
+            _save_test_session(patient_id, "BADS-Zoo", raw_data, scores)
+            alert("Test BADS Zoo guardado exitosamente!", alert_type="success")
+
+
+def _render_bads_llave_form(patient_id: str):
+    """Render BADS Key Search test form"""
+    st.subheader("🔑 BADS - Búsqueda de la Llave")
+    st.caption("Evaluación de Búsqueda Sistemática (Batería BADS)")
+    
+    with st.form("form_bads_llave"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            errores_omision = st.number_input("Omisiones", 0, 30, 3)
+            errores_duplicados = st.number_input("Duplicados", 0, 10, 1)
+        
+        with col2:
+            area_cubierta = st.slider("Área Cubierta (%)", 0, 100, 85, 5)
+            sistematica = st.slider("Sistematicidad", 0.0, 1.0, 0.8, 0.1)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar BADS Llave")
+        
+        if submitted:
+            raw_data = {
+                "omisiones": errores_omision,
+                "duplicados": errores_duplicados,
+                "area_cubierta": area_cubierta,
+                "sistematica": sistematica
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "BADS-Llave"}
+            }
+            _save_test_session(patient_id, "BADS-Llave", raw_data, scores)
+            alert("Test BADS Llave guardado exitosamente!", alert_type="success")
+
+
+def _render_fcsrt_form(patient_id: str):
+    """Render FCSRT test form"""
+    st.subheader("📚 FCSRT")
+    st.caption("Test de Memoria Libre y Facilitada Selectivamente (Buschke)")
+    
+    with st.form("form_fcsrt"):
+        st.markdown("**Memoria Libre**")
+        col1, col2 = st.columns(2)
+        with col1:
+            recuerdo_libre = st.number_input("Recuerdo Libre Inmediato", 0, 20, 10)
+        with col2:
+            recuerdo_facilitado = st.number_input("Recuerdo Facilitado", 0, 20, 12)
+        
+        st.markdown("**Memoria Diferida (tras intervalo)**")
+        col1, col2 = st.columns(2)
+        with col1:
+            recuerdo_libre_dif = st.number_input("Recuerdo Libre Diferido", 0, 20, 8)
+        with col2:
+            recuerdo_facilitado_dif = st.number_input("Recuerdo Facilitado Diferido", 0, 20, 10)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar FCSRT")
+        
+        if submitted:
+            raw_data = {
+                "recuerdo_libre": recuerdo_libre,
+                "recuerdo_facilitado": recuerdo_facilitado,
+                "recuerdo_libre_diferido": recuerdo_libre_dif,
+                "recuerdo_facilitado_diferido": recuerdo_facilitado_dif
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "FCSRT"}
+            }
+            _save_test_session(patient_id, "FCSRT", raw_data, scores)
+            alert("FCSRT guardado exitosamente!", alert_type="success")
+
+
+def _render_perfil_sensorial_form(patient_id: str):
+    """Render Perfil Sensorial del Adulto form"""
+    st.subheader("🎯 Perfil Sensorial del Adulto")
+    st.caption("Cuestionario de Auto-evaluación Sensorial")
+    
+    with st.form("form_perfil_sensorial"):
+        st.markdown("**Procesamiento Sensorial (Escala 1-5)**")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            sensibilidad_tactil = st.slider("Sensibilidad Táctil", 1, 5, 3)
+            sensibilidad_auditiva = st.slider("Sensibilidad Auditiva", 1, 5, 3)
+            sensibilidad_visual = st.slider("Sensibilidad Visual", 1, 5, 3)
+        
+        with col2:
+            sensibilidad_olfativa = st.slider("Sensibilidad Olfativa", 1, 5, 3)
+            sensibilidad_gustativa = st.slider("Sensibilidad Gustativa", 1, 5, 3)
+            tolerancia_movimiento = st.slider("Tolerancia a Movimiento", 1, 5, 3)
+        
+        st.markdown("**Búsqueda Sensorial (Escala 1-5)**")
+        busqueda = st.slider("Búsqueda de Estímulos", 1, 5, 3)
+        
+        observaciones = st.text_area("Observaciones", "")
+        submitted = st.form_submit_button("💾 Guardar Perfil Sensorial")
+        
+        if submitted:
+            raw_data = {
+                "sensibilidad_tactil": sensibilidad_tactil,
+                "sensibilidad_auditiva": sensibilidad_auditiva,
+                "sensibilidad_visual": sensibilidad_visual,
+                "sensibilidad_olfativa": sensibilidad_olfativa,
+                "sensibilidad_gustativa": sensibilidad_gustativa,
+                "tolerancia_movimiento": tolerancia_movimiento,
+                "busqueda_sensorial": busqueda
+            }
+            scores = {
+                "puntuacion_escalar": 10,
+                "percentil": 50,
+                "clasificacion": "Normal",
+                "norma_aplicada": {"fuente": "Simulado", "test": "Perfil Sensorial"}
+            }
+            _save_test_session(patient_id, "Perfil Sensorial", raw_data, scores)
+            alert("Perfil Sensorial guardado exitosamente!", alert_type="success")

@@ -327,10 +327,21 @@ class ProtocolService:
             "TMT-B",
             "TAVEC",
             "Fluidez-FAS",
-            "Figura de Rey - Copia",
-            "Figura de Rey - Memoria",
+            "Fluidez-Semántica",
+            "Rey-Copia",
+            "Rey-Memoria",
             "Torre de Londres",
-            "Toulouse-Pieron"
+            "Toulouse-Pieron",
+            "DIVA-5",
+            "BRIEF-A",
+            "WAIS-IV",
+            "Dígitos",
+            "Test d2-R",
+            "FDT",
+            "BADS-Zoo",
+            "BADS-Llave",
+            "FCSRT",
+            "Perfil Sensorial"
         ]
 
 
